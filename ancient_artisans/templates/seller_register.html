@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Seller Register - AncientArtisans{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <h2 class="form-title">Apply as Seller</h2>
+        <form id="sellerRegisterForm" action="{{ url_for('register_seller') }}" method="POST">
+    <input type="hidden" name="user_type" value="seller">
+    
+    <div class="form-group">
+        <label for="sellerUsername">Username</label>
+        <input type="text" id="sellerUsername" name="username" placeholder="Choose a username" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="sellerEmail">Email Address</label>
+        <input type="email" id="sellerEmail" name="email" placeholder="Enter your email" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="sellerFirstName">First Name</label>
+        <input type="text" id="sellerFirstName" name="first_name" placeholder="Enter your first name" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="sellerLastName">Last Name</label>
+        <input type="text" id="sellerLastName" name="last_name" placeholder="Enter your last name" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="sellerPassword">Password</label>
+        <input type="password" id="sellerPassword" name="password" placeholder="Create a password" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="sellerConfirmPassword">Confirm Password</label>
+        <input type="password" id="sellerConfirmPassword" name="confirm_password" placeholder="Confirm your password" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="bio">Artisan Bio</label>
+        <textarea id="bio" name="bio" placeholder="Tell us about your craft and experience" rows="3"></textarea>
+    </div>
+    
+    <button type="submit" class="btn btn-primary" style="width: 100%;">Apply as Seller</button>
+</form>
+
+    </div>
+</div>
+{% endblock %}

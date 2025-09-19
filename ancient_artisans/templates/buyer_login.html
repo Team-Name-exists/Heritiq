@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Buyer Login - AncientArtisans{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <h2 class="form-title">Login to AncientArtisans</h2>
+
+        <!-- Buyer Login Form -->
+        <form id="buyerLoginForm">
+            <input type="hidden" name="user_type" value="buyer">
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <i class="fas fa-sign-in-alt"></i> Login as Buyer
+            </button>
+            
+            <p style="text-align: center; margin-top: 15px;">
+                Don't have an account? <a href="{{ url_for('register_buyer') }}" style="color: var(--accent);">Sign up as Buyer</a>
+            </p>
+        </form>
+        
+        <!-- Error Message Container -->
+        <div id="loginError" style="display: none; background: #ffebee; color: #c62828; padding: 10px; border-radius: 4px; margin-top: 15px; text-align: center;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Buyer login form submission
+document.getElementById('buyerLoginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {
+        email: formData.get('email'),
+        password: formData.get('password'),
+        user_type: 'buyer'
+    };
+    
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            window.location.href = result.redirect || '/buyer/dashboard';
+        } else {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = result.message || 'Login failed';
+            errorDiv.style.display = 'block';
+        }
+    } catch (err) {
+        console.error(err);
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.textContent = 'Something went wrong. Please try again.';
+        errorDiv.style.display = 'block';
+    }
+});
+</script>
+{% endblock %}

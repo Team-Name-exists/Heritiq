@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Payment - AncientArtisans{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="section-title">Complete Your Payment</h2>
+    
+    <div style="max-width: 600px; margin: 0 auto;">
+        <!-- Order Summary -->
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <h3 style="margin-bottom: 15px;">Order #{{ order.id }}</h3>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+                <span>Order Total</span>
+                <span> ₹{{ "%.2f"|format(order.total_amount) }}</span>
+            </div>
+        </div>
+        
+        <!-- Payment Methods -->
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <h3 style="margin-bottom: 15px;">Select Payment Method</h3>
+            
+            <div class="payment-methods">
+                <div class="payment-method selected" data-method="card" onclick="selectPayment('card')">
+                    <i class="fab fa-cc-visa"></i>
+                    <p>Credit Card</p>
+                </div>
+                <div class="payment-method" data-method="paypal" onclick="selectPayment('paypal')">
+                    <i class="fab fa-cc-paypal"></i>
+                    <p>PayPal</p>
+                </div>
+                <div class="payment-method" data-method="apple" onclick="selectPayment('apple')">
+                    <i class="fab fa-cc-apple-pay"></i>
+                    <p>UPI</p>
+                </div>
+            </div>
+            
+            <!-- Credit Card Form (shown by default) -->
+            <div id="cardFields" style="margin-top: 20px;">
+                <div class="form-group">
+                    <label for="cardNumber">Card Number *</label>
+                    <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" required>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label for="expiry">Expiry Date *</label>
+                        <input type="text" id="expiry" placeholder="MM/YY" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cvv">CVV *</label>
+                        <input type="text" id="cvv" placeholder="123" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cardName">Name on Card *</label>
+                    <input type="text" id="cardName" required>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Secure Payment Button -->
+        <form id="paymentForm" action="{{ url_for('process_payment') }}" method="POST">
+            <input type="hidden" name="order_id" value="{{ order.id }}">
+            <input type="hidden" id="selectedPaymentMethod" name="payment_method" value="card">
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;">
+                <i class="fas fa-lock"></i> Pay Securely -  ₹{{ "%.2f"|format(order.total_amount) }}
+            </button>
+            
+            <p style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9rem;">
+                <i class="fas fa-shield-alt"></i> Your payment is secured with SSL encryption
+            </p>
+        </form>
+    </div>
+</div>
+
+<script>
+function selectPayment(method) {
+    document.querySelectorAll('.payment-method').forEach(el => {
+        el.classList.remove('selected');
+    });
+    
+    document.querySelector(`.payment-method[data-method=" ₹{method}"]`).classList.add('selected');
+    document.getElementById('selectedPaymentMethod').value = method;
+    
+    // Show/hide card fields based on selection
+    const cardFields = document.getElementById('cardFields');
+    if (cardFields) {
+        if (method === 'card') {
+            cardFields.style.display = 'block';
+        } else {
+            cardFields.style.display = 'none';
+        }
+    }
+}
+
+// Handle form submission
+document.getElementById('paymentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // In a real implementation, this would validate and process payment
+    const formData = new FormData(this);
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect;
+        } else {
+            alert('Payment failed: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Payment failed. Please try again.');
+    });
+});
+</script>
+{% endblock %}

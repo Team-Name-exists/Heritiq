@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - AncientArtisans{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="section-title">Checkout</h2>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+        <!-- Order Summary -->
+        <div>
+            <h3 style="margin-bottom: 20px;">Order Summary</h3>
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <span>Handcrafted Pottery Vase</span>
+                        <span> ₹84.99</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <span>Wooden Sculpture</span>
+                        <span> ₹129.99</span>
+                    </div>
+                </div>
+                
+                <div style="border-top: 2px solid #eee; padding-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <strong>Subtotal</strong>
+                        <strong> ₹214.98</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #666;">
+                        <span>Shipping</span>
+                        <span> ₹12.99</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #666;">
+                        <span>Tax</span>
+                        <span> ₹17.20</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 1.2rem; padding-top: 15px; border-top: 2px solid #eee;">
+                        <strong>Total</strong>
+                        <strong style="color: var(--primary);"> ₹245.17</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Shipping and Payment -->
+        <div>
+            <h3 style="margin-bottom: 20px;">Shipping Information</h3>
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px;">
+                <form>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div class="form-group">
+                            <label for="firstName">First Name *</label>
+                            <input type="text" id="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name *</label>
+                            <input type="text" id="lastName" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="address">Address *</label>
+                        <input type="text" id="address" required>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div class="form-group">
+                            <label for="city">City *</label>
+                            <input type="text" id="city" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="zipCode">ZIP Code *</label>
+                            <input type="text" id="zipCode" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="country">Country *</label>
+                        <select id="country" required>
+                            <option value="">Select Country</option>
+                            <option value="US">United States</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="CA">Canada</option>
+                            <!-- Add more countries as needed -->
+                        </select>
+                    </div>
+                </form>
+            </div>
+            
+            <form action="{{ url_for('checkout') }}" method="POST">
+                <input type="hidden" name="total_amount" value="245.17">
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;">
+                    <i class="fas fa-lock"></i> Continue to Payment
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

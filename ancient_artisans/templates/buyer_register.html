@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Buyer Register - AncientArtisans{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <h2 class="form-title">Create Buyer Account</h2>
+        
+        <form id="buyerRegisterForm" action="{{ url_for('register_buyer') }}" method="POST">
+            <input type="hidden" name="user_type" value="buyer">
+            
+            <div class="form-group">
+                <label for="buyerUsername">Username</label>
+                <input type="text" id="buyerUsername" name="username" placeholder="Choose a username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="buyerEmail">Email Address</label>
+                <input type="email" id="buyerEmail" name="email" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="buyerFirstName">First Name</label>
+                <input type="text" id="buyerFirstName" name="first_name" placeholder="Enter your first name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="buyerLastName">Last Name</label>
+                <input type="text" id="buyerLastName" name="last_name" placeholder="Enter your last name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="buyerPassword">Password</label>
+                <input type="password" id="buyerPassword" name="password" placeholder="Create a password" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="buyerConfirmPassword">Confirm Password</label>
+                <input type="password" id="buyerConfirmPassword" name="confirm_password" placeholder="Confirm your password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Buyer Account</button>
+            
+            <p style="text-align: center; margin-top: 15px;">
+                Already have an account? <a href="{{ url_for('buyer_login') }}" style="color: var(--accent);">Login here</a>
+            </p>
+        </form>
+    </div>
+</div>
+{% endblock %}

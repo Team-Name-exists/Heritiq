@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}AI Tutorial - {{ product.name }} - AncientArtisans{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);">
+            <i class="fas fa-arrow-left"></i> Back to Product
+        </a>
+        <h2 style="margin: 0;">AI-Generated Tutorial</h2>
+    </div>
+
+    <!-- Product Info -->
+    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px;">
+        <div style="display: flex; gap: 20px; margin-bottom: 30px;">
+            <img src="{{ url_for('static', filename='uploads/' + product.image_path) if product.image_path else 'https://placehold.co/200x200/D2B48C/FFFFFF?text=No+Image' }}" 
+                 alt="{{ product.name }}" style="width: 200px; height: 200px; object-fit: cover; border-radius: 8px;">
+            <div>
+                <h3>{{ product.name }}</h3>
+                <p style="color: #666; margin-bottom: 15px;">{{ product.description }}</p>
+                <div style="display: flex; gap: 15px;">
+                    <span style="background: var(--light); padding: 5px 10px; border-radius: 4px;">
+                        <i class="fas fa-tag"></i> {{ product.category }}
+                    </span>
+                    <span style="background: var(--light); padding: 5px 10px; border-radius: 4px;">
+                        <i class="fas fa-box"></i> {{ product.materials }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tutorial Container -->
+        <div id="tutorialContainer">
+            {% if tutorial %}
+            <div style="text-align: center; padding: 40px;">
+                <i class="fas fa-wand-magic-sparkles" style="font-size: 4rem; color: var(--accent); margin-bottom: 20px;"></i>
+                <h3>AI Tutorial Generated</h3>
+                <p style="color: #666;">Click the button below to view the step-by-step tutorial</p>
+                <button class="btn btn-primary" onclick="loadTutorial()" style="margin-top: 20px;">
+                    <i class="fas fa-eye"></i> View Tutorial
+                </button>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 40px;">
+                <i class="fas fa-robot" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
+                <h3>Generate AI Tutorial</h3>
+                <p style="color: #666; max-width: 400px; margin: 0 auto 20px;">
+                    Our AI will analyze this product and generate a detailed tutorial showing how it's made.
+                </p>
+                <button id="generateTutorialBtn" class="btn btn-primary" onclick="generateTutorial({{ product.id}})">
+                    <i class="fas fa-wand-magic-sparkles"></i> Generate Tutorial
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if tutorial %}
+    {% set bg_color = 'var(--success)' if tutorial.difficulty == 'beginner' else 'var(--warning)' if tutorial.difficulty == 'intermediate' else 'var(--danger)' %}
+
+    <!-- Tutorial Content -->
+    <div id="tutorialContent" style="display: none;">
+        <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2 class="section-title">{{ tutorial.title }}</h2>
+            <p style="font-size: 1.1rem; color: #666; text-align: center; margin-bottom: 30px;">
+                {{ tutorial.description }}
+            </p>
+
+            <!-- Materials Needed -->
+            <div style="margin-bottom: 30px;">
+                <h3 style="margin-bottom: 20px;">Materials Needed</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    {% for material in tutorial.materials_needed %}
+                    <span style="background: var(--light); padding: 8px 15px; border-radius: 20px;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i> {{ material }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Step-by-Step Instructions -->
+            <div style="margin-bottom: 30px;">
+                <h3 style="margin-bottom: 20px;">Step-by-Step Instructions</h3>
+                <div class="tutorial-steps">
+                    {% for step in tutorial.steps %}
+                    <div style="background: var(--light); padding: 25px; border-radius: 8px; margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                            <div style="background: var(--accent); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                {{ step.step_number }}
+                            </div>
+                            <h4 style="margin: 0; color: var(--dark);">{{ step.title }}</h4>
+                        </div>
+                        <p style="color: #666; margin-bottom: 15px; line-height: 1.6;">{{ step.description }}</p>
+
+                        {% if step.tips %}
+                        <div style="background: rgba(255, 255, 255, 0.5); padding: 15px; border-radius: 6px; border-left: 4px solid var(--accent);">
+                            <h5 style="margin: 0 0 10px 0; color: var(--dark);">
+                                <i class="fas fa-lightbulb" style="color: var(--warning);"></i> Pro Tips
+                            </h5>
+                            <ul style="margin: 0; color: #666;">
+                                {% for tip in step.tips %}
+                                <li style="margin-bottom: 5px;">{{ tip }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tutorial Information -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                <h3 style="margin-bottom: 15px;">Tutorial Information</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div>
+                        <strong>Estimated Time:</strong>
+                        <p style="margin: 5px 0 0 0; color: #666;">{{ tutorial.estimated_time }}</p>
+                    </div>
+                    <div>
+                        <strong>Difficulty Level:</strong>
+                        <p style="margin: 5px 0 0 0; color: #666;">
+                            <span style="background: {{ bg_color }}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">
+                                {{ tutorial.difficulty|title }}
+                            </span>
+                        </p>
+                    </div>
+                    <div>
+                        <strong>Generated On:</strong>
+                        <p style="margin: 5px 0 0 0; color: #666;">{{ tutorial.created_date }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Print / Share Buttons -->
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);" onclick="window.print()">
+                <i class="fas fa-print"></i> Print Tutorial
+            </button>
+            <button class="btn btn-primary" onclick="shareTutorial()" style="margin-left: 10px;">
+                <i class="fas fa-share"></i> Share Tutorial
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- JS -->
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+

@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - AncientArtisans{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
+        <!-- Product Image -->
+        <div>
+            <img src="{{ url_for('static', filename='uploads/' + product.image_path) }}" 
+                 alt="{{ product.name }}" style="width: 100%; border-radius: 8px;">
+        </div>
+        
+        <!-- Product Info -->
+        <div>
+            <h1>{{ product.name }}</h1>
+            <p class="product-artisan">By: <a href="{{ url_for('products') }}?seller_id={{ product.seller_id }}" 
+               style="color: var(--accent); text-decoration: none;">{{ product.seller_name }}</a></p>
+            
+            <div style="display: flex; align-items: center; gap: 20px; margin: 20px 0;">
+                <p class="product-price" style="font-size: 1.8rem; margin: 0;"> ₹{{ "%.2f"|format(product.price) }}</p>
+                
+                {% if product.ai_suggested_price %}
+                <div style="background: var(--light); padding: 10px 15px; border-radius: 4px;">
+                    <small>AI Suggested: <strong> ₹{{ "%.2f"|format(product.ai_suggested_price) }}</strong></small>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <h3>Description</h3>
+                <p>{{ product.description }}</p>
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <h3>Details</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    {% if product.materials %}
+                    <div>
+                        <strong>Materials:</strong>
+                        <p>{{ product.materials }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if product.dimensions %}
+                    <div>
+                        <strong>Dimensions:</strong>
+                        <p>{{ product.dimensions }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if product.weight %}
+                    <div>
+                        <strong>Weight:</strong>
+                        <p>{{ product.weight }} kg</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div>
+                        <strong>Category:</strong>
+                        <p>{{ product.category }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin: 30px 0;">
+                <button class="btn btn-primary add-to-cart" 
+                        data-product-id="{{ product.id }}"
+                        data-product-name="{{ product.name }}"
+                        data-product-price="{{ product.price }}"
+                        style="width: 100%; padding: 15px; font-size: 1.1rem;">
+                    <i class="fas fa-shopping-cart"></i> Add to Cart - ₹{{ "%.2f"|format(product.price) }}
+                </button>
+                
+                <button class="btn btn-outline" onclick="openAIModal()" 
+                        style="width: 100%; margin-top: 10px; color: var(--dark); border-color: var(--dark);">
+                    <i class="fas fa-bolt"></i> AI Price Check
+                </button>
+                
+                <button class="btn btn-outline" onclick="openMessaging()" 
+                        style="width: 100%; margin-top: 10px; color: var(--dark); border-color: var(--dark);">
+                    <i class="fas fa-comment"></i> Message Artisan
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Artisan Info -->
+    <div style="background: var(--light); padding: 30px; border-radius: 8px; margin-bottom: 40px;">
+        <h2>About the Artisan</h2>
+        <div style="display: grid; grid-template-columns: 100px 1fr; gap: 20px; align-items: center;">
+            <img src="{% if product.seller_bio %}{{ url_for('static', filename='uploads/profiles/' + product.seller_bio) }}{% else %}https://placehold.co/100x100/D2B48C/FFFFFF?text={{ product.seller_name|first }}{% endif %}" 
+                 alt="{{ product.seller_name }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
+            <div>
+                <h3>{{ product.seller_name }}</h3>
+                <p>{{ product.seller_bio or 'This artisan specializes in creating beautiful handcrafted items with attention to detail and quality craftsmanship.' }}</p>
+                <a href="{{ url_for('products') }}?seller_id={{ product.seller_id }}" class="btn btn-primary">
+                    View All Products
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div>
+        <h2 class="section-title">Related Products</h2>
+        <div class="products-grid">
+            {% for product in related_products %}
+            <div class="product-card">
+                <img src="{{ url_for('static', filename='uploads/' + product.image_path) }}" alt="{{ product.name }}" class="product-image">
+                <div class="product-info">
+                    <h3 class="product-title">{{ product.name }}</h3>
+                    <p class="product-artisan">By: {{ product.seller_name }}</p>
+                    <p class="product-price"> ₹{{ "%.2f"|format(product.price) }}</p>
+                    <div class="product-actions">
+                        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline" 
+                           style="color: var(--dark); border-color: var(--dark);">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <button class="btn btn-primary add-to-cart" 
+                                data-product-id="{{ product.id }}"
+                                data-product-name="{{ product.name }}"
+                                data-product-price="{{ product.price }}">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openAIModal() {
+    // In a real implementation, this would fetch AI analysis
+    document.getElementById('aiModal').style.display = 'flex';
+}
+
+function openMessaging() {
+    // In a real implementation, this would open messaging with the artisan
+    document.getElementById('messagingModal').style.display = 'flex';
+}
+</script>
+{% endblock %}

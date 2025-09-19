@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Seller Login - AncientArtisans{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <h2 class="form-title">Login to AncientArtisans</h2>
+
+        <!-- Seller Login Form -->
+        <form id="sellerLoginForm">
+            <input type="hidden" name="user_type" value="seller">
+            
+            <div class="form-group">
+                <label for="sellerEmail">Email Address</label>
+                <input type="email" id="sellerEmail" name="email" placeholder="Enter your seller email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="sellerPassword">Password</label>
+                <input type="password" id="sellerPassword" name="password" placeholder="Enter your password" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="verificationCode">Artisan Verification Code</label>
+                <input type="text" id="verificationCode" name="verification_code" placeholder="Enter verification code" required>
+                <small style="color: #666;">Contact support if you don't have a verification code</small>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <i class="fas fa-store"></i> Login as Seller
+            </button>
+            
+            <p style="text-align: center; margin-top: 15px;">
+                Not registered as seller? <a href="{{ url_for('register_seller') }}" style="color: var(--accent);">Apply for Seller Account</a>
+            </p>
+        </form>
+        
+        <!-- Error Message Container -->
+        <div id="loginError" style="display: none; background: #ffebee; color: #c62828; padding: 10px; border-radius: 4px; margin-top: 15px; text-align: center;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Seller login form submission
+document.getElementById('sellerLoginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {
+        email: formData.get('email'),
+        password: formData.get('password'),
+        verification_code: formData.get('verification_code'),
+        user_type: 'seller'
+    };
+    
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            window.location.href = result.redirect || '/seller/dashboard';
+        } else {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = result.message || 'Login failed';
+            errorDiv.style.display = 'block';
+        }
+    } catch (err) {
+        console.error(err);
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.textContent = 'Something went wrong. Please try again.';
+        errorDiv.style.display = 'block';
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Messages - AncientArtisans{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="section-title">Your Messages</h2>
+    
+    {% if conversations %}
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        {% for conversation in conversations %}
+        <a href="{{ url_for('conversation', user_id=conversation.other_user_id) }}" 
+           style="display: block; padding: 20px; border-bottom: 1px solid #eee; text-decoration: none; color: inherit;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user" style="color: #999;"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; color: var(--dark);">{{ conversation.other_username }}</h4>
+                        <p style="margin: 5px 0; color: #666;">{{ conversation.last_message|truncate(60) }}</p>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <small style="color: #999;">{{ conversation.last_message_time|string|truncate(10, True, '') }}</small>
+                    {% if conversation.unread_count > 0 %}
+                    <span style="background: var(--accent); color: white; padding: 4px 8px; border-radius: 50%; font-size: 0.8rem; margin-left: 10px;">
+                        {{ conversation.unread_count }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 60px 20px;">
+        <i class="fas fa-comments" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
+        <h3>No Messages Yet</h3>
+        <p style="color: #666; max-width: 400px; margin: 0 auto;">
+            Start a conversation with an artisan by clicking the "Message" button on their products.
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

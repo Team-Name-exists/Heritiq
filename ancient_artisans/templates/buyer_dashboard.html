@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Buyer Dashboard - AncientArtisans{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="section-title">Buyer Dashboard</h2>
+    
+    <!-- Welcome Section -->
+    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px;">
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="width: 80px; height: 80px; background: var(--light); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-user" style="font-size: 2rem; color: var(--accent);"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0 0 5px 0;">Welcome back, {{ session.username }}!</h3>
+                <p style="color: #666; margin: 0;">Explore handcrafted treasures from local artisans</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <div class="stat-number">{{ orders|length }}</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ unread_messages }}</div>
+            <div class="stat-label">Unread Messages</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ wishlist_count }}</div>
+            <div class="stat-label">Wishlist Items</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ reviews_count }}</div>
+            <div class="stat-label">Reviews Given</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div style="display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;">
+        <a href="{{ url_for('products') }}" class="btn btn-primary">
+            <i class="fas fa-shopping-bag"></i> Browse Products
+        </a>
+        <a href="{{ url_for('messages_list') }}" class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);">
+            <i class="fas fa-comments"></i> View Messages
+        </a>
+        <a href="{{ url_for('cart_view') }}" class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);">
+            <i class="fas fa-shopping-cart"></i> Shopping Cart
+        </a>
+    </div>
+
+    <!-- Recent Orders -->
+    <div style="margin-bottom: 30px;">
+        <h3 style="margin-bottom: 20px;">Recent Orders</h3>
+        
+        {% if orders %}
+        <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            {% for order in orders %}
+            <div style="padding: 20px; border-bottom: 1px solid #eee;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div>
+                        <h4 style="margin: 0;">Order #{{ order.id }}</h4>
+                        <p style="margin: 5px 0; color: #666;">Placed on {{ order.created_at.strftime('%b %d, %Y') }}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="status-badge 
+                            {% if order.status == 'delivered' %} delivered
+                            {% elif order.status == 'shipped' %} shipped
+                            {% elif order.status == 'confirmed' %} confirmed
+                            {% else %} secondary{% endif %}">
+                            {{ order.status|title }}
+                        </span>
+                        <p style="margin: 5px 0; font-weight: bold;">
+                             ₹{{ "%.2f"|format(order.total_amount) }}
+                        </p>
+                    </div>
+                </div>
+                <a href="{{ url_for('order_confirmation', order_id=order.id) }}" class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);">
+                    <i class="fas fa-eye"></i> View Order
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="#" class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);">
+                <i class="fas fa-history"></i> View All Orders
+            </a>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px; background: white; border-radius: 8px;">
+            <i class="fas fa-shopping-bag" style="font-size: 3rem; color: #ddd; margin-bottom: 20px;"></i>
+            <h3>No Orders Yet</h3>
+            <p>Start shopping to discover unique handcrafted products from local artisans.</p>
+          <div style="margin-top: 30px; text-align: center;">
+    <a href="{{ url_for('products') }}" class="btn btn-primary">
+        <i class="fas fa-shopping-bag"></i> Start Shopping
+    </a>
+</div>
+
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recommended Products -->
+    <div style="margin-bottom: 30px;">
+        <h3 style="margin-bottom: 20px;">Recommended For You</h3>
+        
+        <div class="products-grid">
+            {% for product in recommended_products %}
+            <div class="product-card">
+                <img src="{{ url_for('static', filename='uploads/' + product.image_path) if product.image_path else 'https://placehold.co/300x200/D2B48C/FFFFFF?text=No+Image' }}" 
+                     alt="{{ product.name }}" class="product-image">
+                <div class="product-info">
+                    <h3 class="product-title">{{ product.name }}</h3>
+                    <p class="product-artisan">By: {{ product.seller_name }}</p>
+                    <p class="product-price"> ₹{{ "%.2f"|format(product.price) }}</p>
+                    <div class="product-actions">
+                        <button class="btn btn-outline add-to-cart" style="color: var(--dark); border-color: var(--dark);"
+                                data-product-id="{{ product.id }}"
+                                data-product-name="{{ product.name }}"
+                                data-product-price="{{ product.price }}">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Messages Preview -->
+    {% if recent_messages %}
+    <div style="margin-bottom: 30px;">
+        <h3 style="margin-bottom: 20px;">Recent Messages</h3>
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            {% for conversation in recent_messages %}
+            <a href="{{ url_for('conversation_detail', user_id=conversation.other_user_id) }}" 
+               style="display: block; padding: 15px; border-bottom: 1px solid #eee; text-decoration: none; color: inherit;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user" style="color: #999;"></i>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0; color: var(--dark);">{{ conversation.other_username }}</h4>
+                            <p style="margin: 5px 0; color: #666;">{{ conversation.last_message|truncate(40) }}</p>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <small style="color: #999;">{{ conversation.last_message_time|string|truncate(10, True, '') }}</small>
+                        {% if conversation.unread_count > 0 %}
+                        <span style="background: var(--accent); color: white; padding: 4px 8px; border-radius: 50%; font-size: 0.8rem; margin-left: 10px;">
+                            {{ conversation.unread_count }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="{{ url_for('messages_list') }}" class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);">
+                    <i class="fas fa-comments"></i> View All Messages
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Add to cart functionality
+document.querySelectorAll('.add-to-cart').forEach(button => {
+    button.addEventListener('click', function() {
+        const productId = this.getAttribute('data-product-id');
+        const productName = this.getAttribute('data-product-name');
+        const productPrice = this.getAttribute('data-product-price');
+        
+        // In a real implementation, this would add to cart via AJAX
+        alert(`Added  ₹{productName} to cart!`);
+        
+        // Update cart count
+        updateCartCount(1);
+    });
+});
+
+function updateCartCount(change) {
+    let cartCount = parseInt(localStorage.getItem('cartCount') || '0');
+    cartCount += change;
+    localStorage.setItem('cartCount', cartCount);
+    
+    const cartCountElement = document.getElementById('cartCount');
+    if (cartCountElement) {
+        cartCountElement.textContent = cartCount;
+        cartCountElement.style.display = cartCount > 0 ? 'inline' : 'none';
+    }
+}
+
+// Initialize cart count
+const cartCount = parseInt(localStorage.getItem('cartCount') || '0');
+const cartCountElement = document.getElementById('cartCount');
+if (cartCountElement) {
+    cartCountElement.textContent = cartCount;
+    cartCountElement.style.display = cartCount > 0 ? 'inline' : 'none';
+}
+</script>
+{% endblock %}

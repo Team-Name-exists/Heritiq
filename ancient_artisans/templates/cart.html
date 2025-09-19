@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - AncientArtisans{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="section-title">Your Shopping Cart</h2>
+    
+    <div id="cartContent" data-user-id="{{ user_id }}" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div style="text-align: center; padding: 40px;">
+            <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
+            <h3>Loading your cart...</h3>
+        </div>
+    </div>
+</div>
+
+<!-- JS loaded after HTML, with defer -->
+<script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+{% endblock %}
