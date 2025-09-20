@@ -14,4 +14,4 @@ from .payment import Payment
 from .tutorial import Tutorial
 
 
-__all__ = ['mysql', 'init_db', 'User', 'Product', 'Cart', 'Order', 'Message', 'Payment', 'Tutorial']
+__all__ = [ 'init_db', 'User', 'Product', 'Cart', 'Order', 'Message', 'Payment', 'Tutorial']
