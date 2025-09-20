@@ -1,5 +1,4 @@
-from .database import mysql
-
+from .database import get_cursor, get_connection
 class Order:
     @staticmethod
     def create_order(buyer_id, total_amount, status='pending'):
@@ -102,3 +101,4 @@ class Order:
         stats = cursor.fetchone()
         cursor.close()
         return stats
+
