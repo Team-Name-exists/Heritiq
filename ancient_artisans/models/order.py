@@ -1,14 +1,15 @@
-from .database import get_cursor, get_connection
+from .database import get_cursor, get_connection  # ← Add this import
+
 class Order:
     @staticmethod
     def create_order(buyer_id, total_amount, status='pending'):
         """Create a new order"""
-        cursor = mysql.connection.cursor(dictionary=True)
+        cursor = get_cursor()  # ← Changed to get_cursor()
         query = "INSERT INTO orders (buyer_id, total_amount, status) VALUES (%s, %s, %s)"
         
         try:
             cursor.execute(query, (buyer_id, total_amount, status))
-            mysql.connection.commit()
+            get_connection().commit()  # ← Changed to get_connection().commit()
             return cursor.lastrowid
         except Exception as e:
             print(f"Error creating order: {e}")
@@ -19,7 +20,7 @@ class Order:
     @staticmethod
     def get_order_by_id(order_id):
         """Get order by ID"""
-        cursor = mysql.connection.cursor(dictionary=True)
+        cursor = get_cursor()  # ← Changed to get_cursor()
         query = "SELECT * FROM orders WHERE id = %s"
         cursor.execute(query, (order_id,))
         order = cursor.fetchone()
@@ -29,7 +30,7 @@ class Order:
     @staticmethod
     def get_orders_by_user(buyer_id):
         """Get all orders for a buyer"""
-        cursor = mysql.connection.cursor(dictionary=True)
+        cursor = get_cursor()  # ← Changed to get_cursor()
         query = "SELECT * FROM orders WHERE buyer_id = %s ORDER BY created_at DESC"
         cursor.execute(query, (buyer_id,))
         orders = cursor.fetchall()
@@ -39,12 +40,12 @@ class Order:
     @staticmethod
     def update_order_status(order_id, status):
         """Update order status"""
-        cursor = mysql.connection.cursor()
+        cursor = get_cursor()  # ← Changed to get_cursor()
         query = "UPDATE orders SET status = %s WHERE id = %s"
         
         try:
             cursor.execute(query, (status, order_id))
-            mysql.connection.commit()
+            get_connection().commit()  # ← Changed to get_connection().commit()
             return cursor.rowcount > 0
         except Exception as e:
             print(f"Error updating order status: {e}")
@@ -55,12 +56,12 @@ class Order:
     @staticmethod
     def add_order_item(order_id, product_id, quantity, price):
         """Add item to order"""
-        cursor = mysql.connection.cursor()
+        cursor = get_cursor()  # ← Changed to get_cursor()
         query = "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (%s, %s, %s, %s)"
         
         try:
             cursor.execute(query, (order_id, product_id, quantity, price))
-            mysql.connection.commit()
+            get_connection().commit()  # ← Changed to get_connection().commit()
             return cursor.lastrowid
         except Exception as e:
             print(f"Error adding order item: {e}")
@@ -71,7 +72,7 @@ class Order:
     @staticmethod
     def get_order_items(order_id):
         """Get items for an order"""
-        cursor = mysql.connection.cursor(dictionary=True)
+        cursor = get_cursor()  # ← Changed to get_cursor()
         query = """
             SELECT oi.*, p.name, p.image_path 
             FROM order_items oi 
@@ -86,7 +87,7 @@ class Order:
     @staticmethod
     def get_seller_stats(seller_id):
         """Get order statistics for a seller"""
-        cursor = mysql.connection.cursor(dictionary=True)
+        cursor = get_cursor()  # ← Changed to get_cursor()
         query = """
             SELECT 
                 COUNT(DISTINCT o.id) as total_orders, 
@@ -101,4 +102,3 @@ class Order:
         stats = cursor.fetchone()
         cursor.close()
         return stats
-
