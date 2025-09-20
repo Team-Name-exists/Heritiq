@@ -24,11 +24,11 @@ class User:
 
         try:
             cursor.execute(query, values)
-            mysql.connection.commit()
+            get_connection()n.commit()
             return cursor.lastrowid
         except Exception as e:
             print(f"Error creating user: {e}")
-            mysql.connection.rollback()
+            get_connection().rollback()
             return None
         finally:
             cursor.close()
@@ -83,7 +83,7 @@ class User:
 
         try:
             cursor.execute(query, values)
-            mysql.connection.commit()
+            get_connection().commit()
             return cursor.rowcount > 0
         except Exception as e:
             print(f"Error updating user: {e}")
@@ -126,4 +126,5 @@ class User:
             session['email'] = user['email']
             return user
         return None
+
 
