@@ -77,19 +77,18 @@ window.onclick = function(event) {
 };
 
     
-  // Buyer login form submission
+// Buyer login form submission
 document.getElementById('buyerLoginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
     const data = {
         email: formData.get('email'),
-        password: formData.get('password'),
-        user_type: 'buyer'
+        password: formData.get('password')
     };
     
     try {
-        const response = await fetch('/buyer_login', {   // ✅ fixed endpoint
+        const response = await fetch('/buyer_login', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
@@ -99,7 +98,7 @@ document.getElementById('buyerLoginForm').addEventListener('submit', async funct
         const errorDiv = document.getElementById('loginError');
 
         if (response.ok) {
-            window.location.href = result.redirect || '/buyer/dashboard';
+            window.location.href = result.redirect || '/buyer_dashboard';
         } else {
             errorDiv.textContent = result.message || 'Login failed';
             errorDiv.style.display = 'block';
@@ -113,6 +112,7 @@ document.getElementById('buyerLoginForm').addEventListener('submit', async funct
 });
 
 // Seller login form submission
+const sellerLoginForm = document.getElementById('sellerLoginForm');
 if (sellerLoginForm) {
     sellerLoginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -121,23 +121,22 @@ if (sellerLoginForm) {
         const data = {
             email: formData.get('email'),
             password: formData.get('password'),
-            Artisan_bio: formData.get('bio'),
-            user_type: 'seller'  // Explicitly set as seller
+            verification_code: formData.get('verification_code') // Added verification code
         };
         
         try {
-            const response = await fetch('/login', {
+            const response = await fetch('/seller_login', { // Fixed endpoint
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
             
             const result = await response.json();
+            const errorDiv = document.getElementById('loginError');
             
             if (response.ok) {
-                window.location.href = result.redirect;
+                window.location.href = result.redirect || '/seller_dashboard';
             } else {
-                const errorDiv = document.getElementById('loginError');
                 errorDiv.textContent = result.message || 'Login failed';
                 errorDiv.style.display = 'block';
             }
@@ -183,6 +182,31 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Tab switching function
+window.switchTab = function(tab) {
+    const tabs = document.querySelectorAll('.tab');
+    const buyerForm = document.getElementById('buyerLoginForm');
+    const sellerForm = document.getElementById('sellerLoginForm');
+    const errorDiv = document.getElementById('loginError');
+    
+    // Hide error message when switching tabs
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+    }
+    
+    tabs.forEach(t => t.classList.remove('active'));
+    
+    if (tab === 'buyer') {
+        document.querySelector('.tab:first-child').classList.add('active');
+        if (buyerForm) buyerForm.style.display = 'block';
+        if (sellerForm) sellerForm.style.display = 'none';
+    } else {
+        document.querySelector('.tab:last-child').classList.add('active');
+        if (buyerForm) buyerForm.style.display = 'none';
+        if (sellerForm) sellerForm.style.display = 'block';
+    }
+}
     
     // Tab switching function
     window.switchTab = function(tab) {
@@ -711,4 +735,5 @@ function initLazyLoading() {
 document.addEventListener('DOMContentLoaded', function() {
     initTooltips();
     initLazyLoading();
+
 });
