@@ -1,27 +1,44 @@
 # models/database.py
-from flask_mysqldb import MySQL
-from MySQLdb.cursors import DictCursor
 import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
 load_dotenv()
 
-mysql = MySQL()
+# Global connection variable
+_connection = None
 
 def init_db(app):
-    """Initialize the database with the Flask app"""
-    app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'localhost')
-    app.config['MYSQL_USER'] = os.getenv('MYSQL_USER', 'root')
-    app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD', '8194')
-    app.config['MYSQL_DB'] = os.getenv('MYSQL_DB', 'artisan')
-    app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-    
-    mysql.init_app(app)
-    return mysql
+    """Initialize the database connection"""
+    # This function is kept for compatibility but doesn't do much now
+    return None
+
+def get_connection():
+    """Get or create a database connection"""
+    global _connection
+    if _connection is None or _connection.closed:
+        # Use Render's external database URL with SSL
+        database_url = os.environ.get('postgresql://heritiq_user:0WPsDiNnqavzeyDGtgInjEXXG9yzc5WI@dpg-d37dv6mr433s73em4si0-a/heritiq')
+        
+        # Fix the connection string format if needed
+        if database_url and database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+        
+        # If DATABASE_URL is not set, use individual environment variables
+        if not database_url:
+            database_url = f"postgresql://{os.environ.get('heritiq_user')}:{os.environ.get('0WPsDiNnqavzeyDGtgInjEXXG9yzc5WI')}@{os.environ.get('dpg-d37dv6mr433s73em4si0-a')}:{os.environ.get(' 5432')}/{os.environ.get('heritiq')}"
+        
+        _connection = psycopg2.connect(
+            database_url,
+            sslmode="require"
+        )
+    return _connection
 
 def get_cursor(dictionary=True):
     """Return a cursor, optionally as a DictCursor for dictionary-like results"""
+    conn = get_connection()
     if dictionary:
-        return mysql.connection.cursor(DictCursor)
+        return conn.cursor(cursor_factory=RealDictCursor)
     else:
-        return mysql.connection.cursor()
+        return conn.cursor()
