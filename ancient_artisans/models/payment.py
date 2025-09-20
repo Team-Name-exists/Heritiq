@@ -1,4 +1,4 @@
-from .database import mysql
+from .database import get_cursor, get_connection
 from datetime import datetime
 import uuid
 
@@ -71,4 +71,5 @@ class Payment:
             print(f"Error updating payment status: {e}")
             return False
         finally:
+
             cursor.close()
