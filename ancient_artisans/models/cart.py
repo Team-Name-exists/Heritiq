@@ -16,7 +16,7 @@ class Cart:
         else:
             # Create a new cart
             cursor.execute("INSERT INTO carts (user_id) VALUES (%s)", (user_id,))
-            mysql.connection.commit()
+            get_connection().commit()
             cart_id = cursor.lastrowid
         
         cursor.close()
@@ -87,7 +87,7 @@ class Cart:
             )
             print(f"[DEBUG] Inserted product {product_id} with quantity {quantity}")
 
-        mysql.connection.commit()
+        get_connection().commit()
         cursor.close()
         return True
     
@@ -106,7 +106,7 @@ class Cart:
                 (quantity, cart_item_id)
             )
         
-        mysql.connection.commit()
+        get_connection().commit()
         cursor.close()
         return True
     
@@ -115,7 +115,7 @@ class Cart:
         """Remove an item from the cart"""
         cursor = get_cursor()
         cursor.execute("DELETE FROM cart_items WHERE id = %s", (cart_item_id,))
-        mysql.connection.commit()
+        get_connection().commit()
         cursor.close()
         return True
     
@@ -129,7 +129,7 @@ class Cart:
         
         # Remove all items
         cursor.execute("DELETE FROM cart_items WHERE cart_id = %s", (cart_id,))
-        mysql.connection.commit()
+        get_connection().commit()
         cursor.close()
         return True
     
@@ -139,3 +139,4 @@ class Cart:
         items = Cart.get_cart_items(user_id)
 
         return sum(item['total_price'] for item in items) if items else 0
+
