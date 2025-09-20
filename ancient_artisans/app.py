@@ -723,10 +723,12 @@ def view_tutorial(product_id):
 
     tutorials = Tutorial.get_tutorials_by_product(product_id)
 
-    return render_template('aitutorial.html',
-                           product=product,
-                           tutorials=tutorials)
-
+    return render_template('aitutorial.html', product=product,tutorials=tutorials)
+    
+@app.route('/health')
+def health_check():
+    return jsonify({'status': 'healthy'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
