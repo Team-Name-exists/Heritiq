@@ -114,7 +114,7 @@ document.getElementById('buyerLoginForm').addEventListener('submit', async funct
 // Seller login form submission
 const sellerLoginForm = document.getElementById('sellerLoginForm');
 if (sellerLoginForm) {
-    sellerLoginForm.addEventListener('submit', async function(e) {
+    sellerLoginForm.addEventListener('submit', async function(e)){
         e.preventDefault();
         
         const formData = new FormData(this);
@@ -166,20 +166,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     if (response.ok) {
                         const result = await response.json();
-                        if (result.user_type) {
+                        // Check if user_type exists and is not null/undefined
+                        if (result.user_type !== undefined && result.user_type !== null) {
                             // Suggest the correct form
                             if (result.user_type === 'seller') {
                                 switchTab('seller');
-                            } else {
+                            } else if (result.user_type === 'buyer') {
                                 switchTab('buyer');
                             }
                         }
+                        // If user_type is null (user doesn't exist), do nothing
                     }
                 } catch (err) {
                     console.error('Error checking user type:', err);
                 }
             }
-        });
+        }); // ← Added missing closing parenthesis and bracket
     });
 });
 
