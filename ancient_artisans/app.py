@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from models.database import init_db
 from models.cart import Cart
 from models.database import get_cursor
 from models.database import get_connection
@@ -787,6 +786,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
