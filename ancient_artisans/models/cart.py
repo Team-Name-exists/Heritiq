@@ -1,5 +1,5 @@
 # models/cart.py
-from .database import mysql, get_cursor
+from .database import get_cursor, get_connection
 
 class Cart:
     @staticmethod
@@ -137,4 +137,5 @@ class Cart:
     def get_cart_total(user_id):
         """Calculate the total value of the cart"""
         items = Cart.get_cart_items(user_id)
+
         return sum(item['total_price'] for item in items) if items else 0
