@@ -21,7 +21,7 @@ class Product:
 
         try:
             cursor.execute(query, values)
-            mysql.connection.commit()
+            get_connection().commit()
             return cursor.lastrowid
         except Exception as e:
             print(f"Error creating product: {e}")
@@ -109,7 +109,7 @@ class Product:
 
         try:
             cursor.execute(query, values)
-            mysql.connection.commit()
+            get_connection().commit()
             return cursor.rowcount > 0
         except Exception as e:
             print(f"Error updating product: {e}")
@@ -125,7 +125,7 @@ class Product:
 
         try:
             cursor.execute(query, (product_id,))
-            mysql.connection.commit()
+            get_connection().commit()
             return cursor.rowcount > 0
         except Exception as e:
             print(f"Error deleting product: {e}")
@@ -158,7 +158,7 @@ class Product:
 
         try:
             cursor.execute(query, (suggested_price, product_id))
-            mysql.connection.commit()
+            get_connection().commit()
             return cursor.rowcount > 0
         except Exception as e:
             print(f"Error updating AI suggested price: {e}")
@@ -182,4 +182,5 @@ class Product:
         products = cursor.fetchall()
         cursor.close()
         return products
+
 
