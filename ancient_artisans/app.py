@@ -383,7 +383,7 @@ def register_buyer():
                 INSERT INTO users (username, email, password_hash, first_name, last_name, user_type)
                 VALUES (%s, %s, %s, %s, %s, %s)
             """, (username, email, hashed_password, first_name, last_name, "buyer"))
-            mysql.connection.commit()
+             get_connection().commit() 
             flash('Buyer account created! Please login.', 'success')
             return redirect(url_for('buyer_login'))
         except Exception as e:
@@ -428,7 +428,7 @@ def register_seller():
             flash('Seller account created! Please login.', 'success')
             return redirect(url_for('seller_login'))
         except Exception as e:
-            mysql.connection.rollback()
+            get_connection().rollback() 
             if "Duplicate entry" in str(e):
                 flash('Username or email already exists', 'error')
             else:
@@ -892,6 +892,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
