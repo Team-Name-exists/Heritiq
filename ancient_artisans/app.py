@@ -885,13 +885,41 @@ def view_tutorial(product_id):
     tutorials = Tutorial.get_tutorials_by_product(product_id)
 
     return render_template('aitutorial.html', product=product,tutorials=tutorials)
+
+
+@app.route('/api/check-user-type', methods=['POST'])
+def check_user_type():
+    """Check if a user exists and return their type"""
+    data = request.get_json()
+    email = data.get('email')
     
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+    
+    cursor = get_cursor()
+    try:
+        cursor.execute("SELECT user_type FROM users WHERE email = %s", (email,))
+        user = cursor.fetchone()
+        
+        if user:
+            return jsonify({'user_type': user['user_type']})
+        else:
+            return jsonify({'user_type': None})
+    except Exception as e:
+        print(f"Error checking user type: {e}")
+        return jsonify({'error': 'Server error'}), 500
+    finally:
+        cursor.close()
+
+
+
 @app.route('/health')
 def health_check():
     return jsonify({'status': 'healthy'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
