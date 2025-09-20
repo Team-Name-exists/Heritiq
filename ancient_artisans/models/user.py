@@ -1,7 +1,7 @@
 # models/user.py
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
-from .database import mysql, get_cursor
+from .database import get_cursor, get_connection
 
 
 class User:
@@ -126,3 +126,4 @@ class User:
             session['email'] = user['email']
             return user
         return None
+
