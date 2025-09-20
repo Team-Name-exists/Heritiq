@@ -24,7 +24,7 @@ class User:
 
         try:
             cursor.execute(query, values)
-            get_connection()n.commit()
+            get_connection().commit()
             return cursor.lastrowid
         except Exception as e:
             print(f"Error creating user: {e}")
@@ -126,5 +126,6 @@ class User:
             session['email'] = user['email']
             return user
         return None
+
 
 
