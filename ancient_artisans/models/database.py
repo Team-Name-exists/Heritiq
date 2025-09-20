@@ -19,7 +19,7 @@ def get_connection():
             import psycopg
             from psycopg.rows import dict_row
             
-            # Use environment variables
+            # Use environment variables or fallback to your credentials
             database_url = os.environ.get('DATABASE_URL')
             
             if database_url:
