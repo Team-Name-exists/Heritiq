@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 from models.database import init_db
 from models.cart import Cart
 from models.database import get_cursor
+from models.database import get_connection
 # load env
 load_dotenv()
 
@@ -48,6 +49,61 @@ create_upload_dirs()
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'mp4'}
 
+# Add this function before your routes
+def create_tables_on_startup():
+    """Create database tables if they don't exist when the app starts"""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # Your table creation SQL (PostgreSQL version)
+        tables = [
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                user_type VARCHAR(10) CHECK (user_type IN ('buyer', 'seller')) NOT NULL,
+                first_name VARCHAR(50) NOT NULL,
+                last_name VARCHAR(50) NOT NULL,
+                address TEXT,
+                city VARCHAR(50),
+                country VARCHAR(50),
+                profile_picture VARCHAR(255),
+                bio TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """,
+            # ... (add all your other table creation statements from the previous example)
+        ]
+        
+        for table in tables:
+            cursor.execute(table)
+        
+        # Create the update trigger function
+        cursor.execute("""
+            CREATE OR REPLACE FUNCTION update_updated_at_column()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END;
+            $$ language 'plpgsql';
+        """)
+        
+        conn.commit()
+        print("✅ Tables created successfully!")
+        
+    except Exception as e:
+        print(f"❌ Error creating tables: {e}")
+    finally:
+        if cursor:
+            cursor.close()
+
+# Call this function when the app starts
+create_tables_on_startup()
 # Provide a generic /login endpoint so url_for('login') calls resolve (redirects to buyer login)
 @app.route('/login', methods=['GET'])
 def login():
@@ -731,5 +787,6 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
