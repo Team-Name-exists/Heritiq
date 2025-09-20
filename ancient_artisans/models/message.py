@@ -4,16 +4,16 @@ class Message:
     @staticmethod
     def create_message(sender_id, receiver_id, message, product_id=None):
         """Create a new message"""
-        cursor = mysql.connection.cursor(dictionary=True)
+        cursor = get_connection().cursor(dictionary=True)
         query = "INSERT INTO messages (sender_id, receiver_id, product_id, message) VALUES (%s, %s, %s, %s)"
         
         try:
             cursor.execute(query, (sender_id, receiver_id, product_id, message))
-            mysql.connection.commit()
+            get_connection().commit() 
             return cursor.lastrowid
         except Exception as e:
             print(f"Error creating message: {e}")
-            mysql.connection.rollback()
+            get_connection().rollback()
             return None
         finally:
             cursor.close()
@@ -21,7 +21,7 @@ class Message:
     @staticmethod
     def get_message_by_id(message_id):
         """Get message by ID"""
-        cursor = mysql.connection.cursor(dictionary=True)
+        cursor = get_connection().cursor(dictionary=True)
         query = "SELECT * FROM messages WHERE id = %s"
         cursor.execute(query, (message_id,))
         message = cursor.fetchone()
@@ -31,7 +31,7 @@ class Message:
     @staticmethod
     def get_conversation(user1_id, user2_id, page=1, per_page=20):
         """Get conversation between two users"""
-        cursor = mysql.connection.cursor(dictionary=True)
+        cursor = get_connection().cursor(dictionary=True)
         query = """
             SELECT m.*, u.username as sender_name 
             FROM messages m 
@@ -50,7 +50,7 @@ class Message:
     @staticmethod
     def get_user_conversations(user_id):
         """Get all conversations for a user (with last message + unread count)"""
-        cursor = mysql.connection.cursor(dictionary=True)
+        cursor = get_connection().cursor(dictionary=True)
         query = """
             SELECT 
                 CASE 
@@ -83,16 +83,16 @@ class Message:
     @staticmethod
     def mark_as_read(sender_id, receiver_id):
         """Mark messages as read"""
-        cursor = mysql.connection.cursor()
+        cursor = get_connection().cursor()
         query = "UPDATE messages SET is_read = TRUE WHERE sender_id = %s AND receiver_id = %s AND is_read = FALSE"
         
         try:
             cursor.execute(query, (sender_id, receiver_id))
-            mysql.connection.commit()
+            get_connection().commit()
             return cursor.rowcount > 0
         except Exception as e:
             print(f"Error marking messages as read: {e}")
-            mysql.connection.rollback()
+            get_connection().rollback()
             return False
         finally:
             cursor.close()
@@ -100,10 +100,11 @@ class Message:
     @staticmethod
     def get_unread_count(user_id):
         """Get count of unread messages for a user"""
-        cursor = mysql.connection.cursor(dictionary=True)
+        cursor = get_connection().cursor(dictionary=True)
         query = "SELECT COUNT(*) as count FROM messages WHERE receiver_id = %s AND is_read = FALSE"
         cursor.execute(query, (user_id,))
         result = cursor.fetchone()
         cursor.close()
         return result['count'] if result else 0
+
 
