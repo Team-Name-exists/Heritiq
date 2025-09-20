@@ -1,5 +1,4 @@
-import mysql.connector
-from mysql.connector import Error
+import psycopg2
 import os
 from dotenv import load_dotenv
 
@@ -10,27 +9,52 @@ def create_database():
     connection = None
     cursor = None
     try:
-        connection = mysql.connector.connect(
-            host=os.getenv('MYSQL_HOST', 'localhost'),
-            user=os.getenv('MYSQL_USER', 'root'),
-            password=os.getenv('MYSQL_PASSWORD', '8194')
+        # Connect to PostgreSQL (without specifying a database first)
+        connection = psycopg2.connect(
+            host=os.getenv('DB_HOST', 'dpg-d37dv6mr433s73em4si0-a.oregon-postgres.render.com'),
+            user=os.getenv('DB_USER', 'heritiq_user'),
+            password=os.getenv('DB_PASSWORD', '0WPsDiNnqavzeyDGtgInjEXXG9yzc5WI'),
+            port=os.getenv('DB_PORT', 5432),
+            sslmode="require"
+        )
+        
+        connection.autocommit = True
+        cursor = connection.cursor()
+        
+        # Create database if it doesn't exist
+        db_name = os.getenv('DB_NAME', 'heritiq')
+        cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = '{db_name}'")
+        exists = cursor.fetchone()
+        
+        if not exists:
+            cursor.execute(f"CREATE DATABASE {db_name}")
+            print(f"✅ Database '{db_name}' created successfully!")
+        
+        # Close initial connection and reconnect to the new database
+        cursor.close()
+        connection.close()
+        
+        # Reconnect to the specific database
+        connection = psycopg2.connect(
+            host=os.getenv('DB_HOST', 'dpg-d37dv6mr433s73em4si0-a.oregon-postgres.render.com'),
+            database=db_name,
+            user=os.getenv('DB_USER', 'heritiq_user'),
+            password=os.getenv('DB_PASSWORD', '0WPsDiNnqavzeyDGtgInjEXXG9yzc5WI'),
+            port=os.getenv('DB_PORT', 5432),
+            sslmode="require"
         )
         
         cursor = connection.cursor()
         
-        # Create database
-        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {os.getenv('MYSQL_DB', 'artisan')}")
-        cursor.execute(f"USE {os.getenv('MYSQL_DB', 'artisan')}")
-
-        # Tables
+        # Create tables
         tables = [
             """
             CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 username VARCHAR(50) UNIQUE NOT NULL,
                 email VARCHAR(100) UNIQUE NOT NULL,
                 password_hash VARCHAR(255) NOT NULL,
-                user_type ENUM('buyer', 'seller') NOT NULL,
+                user_type VARCHAR(10) CHECK (user_type IN ('buyer', 'seller')) NOT NULL,
                 first_name VARCHAR(50) NOT NULL,
                 last_name VARCHAR(50) NOT NULL,
                 address TEXT,
@@ -39,12 +63,12 @@ def create_database():
                 profile_picture VARCHAR(255),
                 bio TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """,
             """
             CREATE TABLE IF NOT EXISTS products (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 seller_id INT NOT NULL,
                 name VARCHAR(255) NOT NULL,
                 description TEXT,
@@ -58,13 +82,13 @@ def create_database():
                 quantity INT DEFAULT 1,
                 is_available BOOLEAN DEFAULT TRUE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
             )
             """,
             """
             CREATE TABLE IF NOT EXISTS carts (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 user_id INT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -72,7 +96,7 @@ def create_database():
             """,
             """
             CREATE TABLE IF NOT EXISTS cart_items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 cart_id INT NOT NULL,
                 product_id INT NOT NULL,
                 quantity INT NOT NULL DEFAULT 1,
@@ -83,7 +107,7 @@ def create_database():
             """,
             """
             CREATE TABLE IF NOT EXISTS messages (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 sender_id INT NOT NULL,
                 receiver_id INT NOT NULL,
                 product_id INT,
@@ -97,17 +121,17 @@ def create_database():
             """,
             """
             CREATE TABLE IF NOT EXISTS orders (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 buyer_id INT NOT NULL,
                 total_amount DECIMAL(10, 2) NOT NULL,
-                status ENUM('pending', 'confirmed', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
+                status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled')),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE CASCADE
             )
             """,
             """
             CREATE TABLE IF NOT EXISTS order_items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 order_id INT NOT NULL,
                 product_id INT NOT NULL,
                 quantity INT NOT NULL,
@@ -118,19 +142,19 @@ def create_database():
             """,
             """
             CREATE TABLE IF NOT EXISTS payments (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 order_id INT NOT NULL,
                 amount DECIMAL(10, 2) NOT NULL,
                 payment_method VARCHAR(50) NOT NULL,
                 transaction_id VARCHAR(255),
-                status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+                status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed')),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
             )
             """,
             """
             CREATE TABLE IF NOT EXISTS tutorials (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 product_id INT NOT NULL,
                 video_path VARCHAR(255) NOT NULL,
                 description TEXT,
@@ -143,13 +167,34 @@ def create_database():
         for table in tables:
             cursor.execute(table)
         
-        print("✅ Database and tables created successfully!")
-        connection.commit()
+        # Create a function to update the updated_at timestamp
+        cursor.execute("""
+            CREATE OR REPLACE FUNCTION update_updated_at_column()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END;
+            $$ language 'plpgsql';
+        """)
         
-    except Error as e:
+        # Create triggers for updated_at
+        for table in ['users', 'products']:
+            cursor.execute(f"""
+                DROP TRIGGER IF EXISTS set_updated_at ON {table};
+                CREATE TRIGGER set_updated_at
+                    BEFORE UPDATE ON {table}
+                    FOR EACH ROW
+                    EXECUTE FUNCTION update_updated_at_column();
+            """)
+        
+        connection.commit()
+        print("✅ Database and tables created successfully!")
+        
+    except Exception as e:
         print(f"❌ Error creating database: {e}")
     finally:
-        if connection and connection.is_connected():
+        if connection:
             if cursor:
                 cursor.close()
             connection.close()
