@@ -1,5 +1,5 @@
 # models/product.py
-from .database import mysql, get_cursor
+from .database import get_cursor, get_connection
 from datetime import datetime
 
 class Product:
@@ -182,3 +182,4 @@ class Product:
         products = cursor.fetchall()
         cursor.close()
         return products
+
