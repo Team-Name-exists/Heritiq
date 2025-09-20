@@ -1,4 +1,4 @@
-from .database import mysql
+from .database import get_cursor, get_connection
 import json
 
 class Tutorial:
@@ -111,3 +111,4 @@ class Tutorial:
             return False
         finally:
             cursor.close()
+
