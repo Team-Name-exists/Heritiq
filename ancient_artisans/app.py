@@ -9,6 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from models.database import init_db
 from models.cart import Cart
+from models.database import get_cursor
 # load env
 load_dotenv()
 
@@ -17,8 +18,7 @@ app = Flask(__name__)
 app.config.from_object('config.Config')
 
 
-# Initialize database with the Flask app
-init_db(app)
+
 
 # Now import your models (they import models.database, not app - avoids circular import)
 from models.user import User
@@ -731,4 +731,5 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
