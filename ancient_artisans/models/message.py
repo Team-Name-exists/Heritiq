@@ -1,4 +1,4 @@
-from .database import mysql
+from .database import get_cursor, get_connection
 
 class Message:
     @staticmethod
@@ -106,3 +106,4 @@ class Message:
         result = cursor.fetchone()
         cursor.close()
         return result['count'] if result else 0
+
