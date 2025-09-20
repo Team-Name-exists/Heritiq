@@ -48,14 +48,14 @@ create_upload_dirs()
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'mp4'}
 
-# Add this function before your routes
-def create_tables_on_startup():
-    """Create database tables if they don't exist when the app starts"""
+# Add this function after your imports but before your routes
+def create_tables_if_not_exist():
+    """Create database tables if they don't exist"""
     try:
         conn = get_connection()
         cursor = conn.cursor()
         
-        # Your table creation SQL (PostgreSQL version)
+        # Create tables (PostgreSQL version)
         tables = [
             """
             CREATE TABLE IF NOT EXISTS users (
@@ -75,13 +75,108 @@ def create_tables_on_startup():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """,
-            # ... (add all your other table creation statements from the previous example)
+            """
+            CREATE TABLE IF NOT EXISTS products (
+                id SERIAL PRIMARY KEY,
+                seller_id INT NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                description TEXT,
+                category VARCHAR(50) NOT NULL,
+                price DECIMAL(10, 2) NOT NULL,
+                ai_suggested_price DECIMAL(10, 2),
+                image_path VARCHAR(255) NOT NULL,
+                materials TEXT,
+                dimensions VARCHAR(100),
+                weight DECIMAL(10, 2),
+                quantity INT DEFAULT 1,
+                is_available BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS carts (
+                id SERIAL PRIMARY KEY,
+                user_id INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS cart_items (
+                id SERIAL PRIMARY KEY,
+                cart_id INT NOT NULL,
+                product_id INT NOT NULL,
+                quantity INT NOT NULL DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
+                FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS messages (
+                id SERIAL PRIMARY KEY,
+                sender_id INT NOT NULL,
+                receiver_id INT NOT NULL,
+                product_id INT,
+                message TEXT NOT NULL,
+                is_read BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS orders (
+                id SERIAL PRIMARY KEY,
+                buyer_id INT NOT NULL,
+                total_amount DECIMAL(10, 2) NOT NULL,
+                status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled')),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS order_items (
+                id SERIAL PRIMARY KEY,
+                order_id INT NOT NULL,
+                product_id INT NOT NULL,
+                quantity INT NOT NULL,
+                price DECIMAL(10, 2) NOT NULL,
+                FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+                FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS payments (
+                id SERIAL PRIMARY KEY,
+                order_id INT NOT NULL,
+                amount DECIMAL(10, 2) NOT NULL,
+                payment_method VARCHAR(50) NOT NULL,
+                transaction_id VARCHAR(255),
+                status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed')),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS tutorials (
+                id SERIAL PRIMARY KEY,
+                product_id INT NOT NULL,
+                video_path VARCHAR(255) NOT NULL,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+            )
+            """
         ]
         
         for table in tables:
             cursor.execute(table)
         
-        # Create the update trigger function
+        # Create a function to update the updated_at timestamp
         cursor.execute("""
             CREATE OR REPLACE FUNCTION update_updated_at_column()
             RETURNS TRIGGER AS $$
@@ -92,6 +187,16 @@ def create_tables_on_startup():
             $$ language 'plpgsql';
         """)
         
+        # Create triggers for updated_at
+        for table in ['users', 'products']:
+            cursor.execute(f"""
+                DROP TRIGGER IF EXISTS set_updated_at ON {table};
+                CREATE TRIGGER set_updated_at
+                    BEFORE UPDATE ON {table}
+                    FOR EACH ROW
+                    EXECUTE FUNCTION update_updated_at_column();
+            """)
+        
         conn.commit()
         print("✅ Tables created successfully!")
         
@@ -101,8 +206,9 @@ def create_tables_on_startup():
         if cursor:
             cursor.close()
 
-# Call this function when the app starts
-create_tables_on_startup()
+# Call this function when the app starts (add this line)
+create_tables_if_not_exist()
+
 # Provide a generic /login endpoint so url_for('login') calls resolve (redirects to buyer login)
 @app.route('/login', methods=['GET'])
 def login():
@@ -786,6 +892,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
