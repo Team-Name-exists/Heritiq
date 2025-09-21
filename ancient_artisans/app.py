@@ -503,11 +503,11 @@ def product_detail(product_id):
                            product=product,
                            related_products=related_products)
 
-
 @app.route('/cart/add', methods=['POST'])
 def add_to_cart():
+    # Check if user is logged in
     if 'user_id' not in session or session.get('user_type') != 'buyer':
-        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+        return jsonify({'success': False, 'error': 'Please login as a buyer to add items to cart'}), 401
 
     data = request.get_json(force=True, silent=True)
     if not data:
@@ -515,6 +515,7 @@ def add_to_cart():
 
     product_id = data.get('product_id')
     quantity = data.get('quantity', 1)
+    user_id = session['user_id']  # Get user_id from session
 
     if not product_id:
         return jsonify({'success': False, 'error': 'Product ID is required'}), 400
@@ -527,7 +528,7 @@ def add_to_cart():
         return jsonify({'success': False, 'error': 'Quantity must be a positive integer'}), 400
 
     try:
-        Cart.add_to_cart(session['user_id'], product_id, quantity)
+        Cart.add_to_cart(user_id, product_id, quantity)
         return jsonify({'success': True, 'message': 'Item added to cart'})
     except Exception as e:
         import traceback
@@ -1029,6 +1030,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
