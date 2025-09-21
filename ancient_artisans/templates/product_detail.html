@@ -7,8 +7,8 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
         <!-- Product Image -->
         <div>
-            <img src="{{ url_for('static', filename='uploads/' + product.image_path) }}" 
-                 alt="{{ product.name }}" style="width: 100%; border-radius: 8px;">
+            <img src="{{ url_for('serve_uploaded_file', filename=product.image_path) }}" 
+                         alt="{{ product.name }}" style="width: 100%; border-radius: 8px;">
         </div>
         
         <!-- Product Info -->
@@ -146,4 +146,5 @@ function openMessaging() {
     document.getElementById('messagingModal').style.display = 'flex';
 }
 </script>
+
 {% endblock %}
