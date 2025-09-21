@@ -52,7 +52,7 @@
     <div class="products-grid">
         {% for product in products %}
         <div class="product-card">
-            <img src="{{ url_for('serve_uploaded_file', filename=product.image_path) if product.image_path else 'https://placehold.co/300x200/D2B48C/FFFFFF?text=No+Image' }}" 
+            <img src="{{ url_for('static', filename='images/' + product.image_path) if product.image_path else 'https://placehold.co/300x200/D2B48C/FFFFFF?text=No+Image' }}" 
                  alt="{{ product.name }}" class="product-image">
             
             <div class="product-info">
@@ -112,4 +112,5 @@
     {% endif %}
 </div>
 {% endblock %}
+
 
