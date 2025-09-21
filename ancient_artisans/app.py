@@ -756,7 +756,7 @@ def add_product():
 
         # Handle image upload
         image = request.files.get('image')
-        if not image or not allowed_file(image.filename):
+    if not image or not allowed_file(image.filename):
         flash('Valid product image is required', 'error')
         return render_template('add_product.html')
 
@@ -993,6 +993,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
