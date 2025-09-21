@@ -399,6 +399,7 @@ def register_buyer():
 
 
 # ---------------- Seller Registration ----------------
+# ---------------- Seller Registration ----------------
 @app.route('/register_seller', methods=['GET', 'POST'])
 def register_seller():
     """Registration page for sellers"""
@@ -409,7 +410,7 @@ def register_seller():
         confirm_password = request.form['confirm_password']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
-        bio = request.form.get('bio', '')  # extra seller field
+        bio = request.form.get('bio', '')  # Use get() for optional fields
 
         # Password validation
         if password != confirm_password:
@@ -424,12 +425,52 @@ def register_seller():
                 INSERT INTO users (username, email, password_hash, first_name, last_name, user_type, bio)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (username, email, hashed_password, first_name, last_name, "seller", bio))
-            get_connection().commit() 
+            get_connection().commit()  # Use get_connection() instead of mysql.connection
             flash('Seller account created! Please login.', 'success')
             return redirect(url_for('seller_login'))
         except Exception as e:
-            get_connection().rollback() 
-            if "Duplicate entry" in str(e):
+            get_connection().rollback()  # Use get_connection() instead of mysql.connection
+            print(f"Registration error: {e}")  # Add this for debugging
+            if "duplicate key" in str(e).lower() or "unique constraint" in str(e).lower():
+                flash('Username or email already exists', 'error')
+            else:
+                flash('An error occurred while creating your account', 'error')
+        finally:
+            cur.close()
+
+    return render_template('seller_register.html')# ---------------- Seller Registration ----------------
+@app.route('/register_seller', methods=['GET', 'POST'])
+def register_seller():
+    """Registration page for sellers"""
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        bio = request.form.get('bio', '')  # Use get() for optional fields
+
+        # Password validation
+        if password != confirm_password:
+            flash('Passwords do not match', 'error')
+            return render_template('seller_register.html')
+
+        hashed_password = generate_password_hash(password)
+
+        cur = get_cursor()
+        try:
+            cur.execute("""
+                INSERT INTO users (username, email, password_hash, first_name, last_name, user_type, bio)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (username, email, hashed_password, first_name, last_name, "seller", bio))
+            get_connection().commit()  # Use get_connection() instead of mysql.connection
+            flash('Seller account created! Please login.', 'success')
+            return redirect(url_for('seller_login'))
+        except Exception as e:
+            get_connection().rollback()  # Use get_connection() instead of mysql.connection
+            print(f"Registration error: {e}")  # Add this for debugging
+            if "duplicate key" in str(e).lower() or "unique constraint" in str(e).lower():
                 flash('Username or email already exists', 'error')
             else:
                 flash('An error occurred while creating your account', 'error')
@@ -912,12 +953,32 @@ def check_user_type():
         cursor.close()
 
 
+# Add this debug route to check your database schema
+@app.route('/debug/schema')
+def debug_schema():
+    """Debug route to check database schema"""
+    try:
+        cursor = get_cursor()
+        cursor.execute("""
+            SELECT column_name, data_type, is_nullable 
+            FROM information_schema.columns 
+            WHERE table_name = 'users'
+            ORDER BY ordinal_position
+        """)
+        columns = cursor.fetchall()
+        cursor.close()
+        return jsonify({'users_columns': columns})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/health')
 def health_check():
     return jsonify({'status': 'healthy'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
