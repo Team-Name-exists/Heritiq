@@ -399,9 +399,9 @@ def register_buyer():
 
 
 # ---------------- Seller Registration ----------------
-@app.route('/register_buyer', methods=['GET', 'POST'])
-def register_buyer():
-    """Registration page for buyers"""
+@app.route('/register_seller', methods=['GET', 'POST'])  # ← Correct route
+def register_seller():  # ← Correct function name
+    """Registration page for sellers"""
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
@@ -409,11 +409,12 @@ def register_buyer():
         confirm_password = request.form['confirm_password']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
+        bio = request.form.get('bio', '')
 
         # Password validation
         if password != confirm_password:
             flash('Passwords do not match', 'error')
-            return render_template('buyer_register.html')
+            return render_template('seller_register.html')
 
         hashed_password = generate_password_hash(password)
 
@@ -421,17 +422,17 @@ def register_buyer():
         try:
             cursor = get_cursor()
             cursor.execute("""
-                INSERT INTO users (username, email, password_hash, first_name, last_name, user_type)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (username, email, hashed_password, first_name, last_name, "buyer"))
+                INSERT INTO users (username, email, password_hash, first_name, last_name, user_type, bio)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (username, email, hashed_password, first_name, last_name, "seller", bio))
             
             get_connection().commit()
-            flash('Buyer account created! Please login.', 'success')
-            return redirect(url_for('buyer_login'))
+            flash('Seller account created! Please login.', 'success')
+            return redirect(url_for('seller_login'))
             
         except Exception as e:
             error_msg = str(e)
-            print(f"Buyer registration error: {error_msg}")
+            print(f"Seller registration error: {error_msg}")
             
             if get_connection():
                 get_connection().rollback()
@@ -447,9 +448,7 @@ def register_buyer():
             if cursor:
                 cursor.close()
     
-    # ✅ Make sure this return statement is at the end
-    return render_template('buyer_register.html')
-
+    return render_template('seller_register.html')
 
 @app.route('/logout')
 def logout():
@@ -949,6 +948,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
