@@ -1,15 +1,17 @@
-from .database import get_cursor, get_connection
+# models/message.py
+from .database import get_connection, get_cursor
+from psycopg.rows import dict_row  # Add this import
 
 class Message:
     @staticmethod
     def create_message(sender_id, receiver_id, message, product_id=None):
         """Create a new message"""
-        cursor = get_connection().cursor(dictionary=True)
+        cursor = get_cursor()  # ✅ Use get_cursor() instead of direct connection
         query = "INSERT INTO messages (sender_id, receiver_id, product_id, message) VALUES (%s, %s, %s, %s)"
         
         try:
             cursor.execute(query, (sender_id, receiver_id, product_id, message))
-            get_connection().commit() 
+            get_connection().commit()
             return cursor.lastrowid
         except Exception as e:
             print(f"Error creating message: {e}")
@@ -21,7 +23,7 @@ class Message:
     @staticmethod
     def get_message_by_id(message_id):
         """Get message by ID"""
-        cursor = get_connection().cursor(dictionary=True)
+        cursor = get_cursor()  # ✅ Use get_cursor()
         query = "SELECT * FROM messages WHERE id = %s"
         cursor.execute(query, (message_id,))
         message = cursor.fetchone()
@@ -31,7 +33,7 @@ class Message:
     @staticmethod
     def get_conversation(user1_id, user2_id, page=1, per_page=20):
         """Get conversation between two users"""
-        cursor = get_connection().cursor(dictionary=True)
+        cursor = get_cursor()  # ✅ Use get_cursor()
         query = """
             SELECT m.*, u.username as sender_name 
             FROM messages m 
@@ -50,7 +52,7 @@ class Message:
     @staticmethod
     def get_user_conversations(user_id):
         """Get all conversations for a user (with last message + unread count)"""
-        cursor = get_connection().cursor(dictionary=True)
+        cursor = get_cursor()  # ✅ Use get_cursor() instead of direct connection
         query = """
             SELECT 
                 CASE 
@@ -59,12 +61,13 @@ class Message:
                 END as other_user_id,
                 u.username as other_username,
                 MAX(m.created_at) as last_message_time,
-                SUBSTRING_INDEX(
+                SUBSTRING(
                     (SELECT message FROM messages 
                      WHERE (sender_id = %s AND receiver_id = u.id) 
                         OR (sender_id = u.id AND receiver_id = %s) 
                      ORDER BY created_at DESC LIMIT 1),
-                '', 1) as last_message,
+                    1, 50
+                ) as last_message,
                 SUM(CASE WHEN m.receiver_id = %s AND m.is_read = FALSE THEN 1 ELSE 0 END) as unread_count
             FROM messages m
             JOIN users u ON u.id = CASE 
@@ -83,7 +86,7 @@ class Message:
     @staticmethod
     def mark_as_read(sender_id, receiver_id):
         """Mark messages as read"""
-        cursor = get_connection().cursor()
+        cursor = get_cursor()  # ✅ Use get_cursor()
         query = "UPDATE messages SET is_read = TRUE WHERE sender_id = %s AND receiver_id = %s AND is_read = FALSE"
         
         try:
@@ -100,11 +103,9 @@ class Message:
     @staticmethod
     def get_unread_count(user_id):
         """Get count of unread messages for a user"""
-        cursor = get_connection().cursor(dictionary=True)
+        cursor = get_cursor()  # ✅ Use get_cursor()
         query = "SELECT COUNT(*) as count FROM messages WHERE receiver_id = %s AND is_read = FALSE"
         cursor.execute(query, (user_id,))
         result = cursor.fetchone()
         cursor.close()
         return result['count'] if result else 0
-
-
