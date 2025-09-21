@@ -509,7 +509,10 @@ def add_to_cart():
     if 'user_id' not in session or session.get('user_type') != 'buyer':
         return jsonify({'success': False, 'error': 'Authentication required'}), 401
 
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True)
+    if not data:
+        return jsonify({'success': False, 'error': 'Invalid JSON'}), 400
+
     product_id = data.get('product_id')
     quantity = data.get('quantity', 1)
 
@@ -517,11 +520,21 @@ def add_to_cart():
         return jsonify({'success': False, 'error': 'Product ID is required'}), 400
 
     try:
+        quantity = int(quantity)
+        if quantity < 1:
+            raise ValueError
+    except (ValueError, TypeError):
+        return jsonify({'success': False, 'error': 'Quantity must be a positive integer'}), 400
+
+    try:
         Cart.add_to_cart(session['user_id'], product_id, quantity)
         return jsonify({'success': True, 'message': 'Item added to cart'})
     except Exception as e:
+        import traceback
         print("Error adding to cart:", e)
+        traceback.print_exc()
         return jsonify({'success': False, 'error': 'Failed to add item to cart'}), 500
+
 
 
 
@@ -1016,6 +1029,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
