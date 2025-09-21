@@ -259,6 +259,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             button.disabled = true;
+            const originalText = button.innerHTML;
+            button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Adding...`;
 
             try {
                 const response = await fetch("/cart/add", {
@@ -269,22 +271,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const result = await response.json();
 
-                if (result.success) {
+                if (response.ok && result.success) {
                     alert(`${productName} added to cart!`);
-                    // Optional: update cart counter UI here
+                    updateCartCount(1);
                 } else {
-                    alert(result.error || "Failed to add item to cart.");
+                    if (response.status === 401) {
+                        // User not logged in, show login modal
+                        openLoginModal();
+                        alert("Please login to add items to your cart");
+                    } else {
+                        alert(result.error || "Failed to add item to cart.");
+                    }
                 }
             } catch (error) {
                 console.error("Error adding to cart:", error);
                 alert("Error adding item to cart.");
             } finally {
                 button.disabled = false;
+                button.innerHTML = originalText;
             }
         });
     });
 });
 
+
+
+// Function to update cart count
+function updateCartCount(change) {
+    // Update localStorage
+    let cartCount = parseInt(localStorage.getItem('cartCount') || '0');
+    cartCount += change;
+    localStorage.setItem('cartCount', cartCount);
+    
+    // Update UI
+    const cartCountElements = document.querySelectorAll('.cart-count');
+    cartCountElements.forEach(element => {
+        element.textContent = cartCount;
+        element.style.display = cartCount > 0 ? 'inline' : 'none';
+    });
+    
+    // Also update the cart count in the database via API if needed
+    // This would require an additional endpoint to get the actual cart count
+}
 
     // ---------------- Load Cart ----------------
     async function loadCart() {
@@ -360,6 +388,28 @@ document.addEventListener("DOMContentLoaded", () => {
     loadCart();
 });
 
+
+// Initialize cart count on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Get actual cart count from server if user is logged in
+    if (typeof USER_ID !== 'undefined') {
+        fetch(`/api/cart/count?user_id=${USER_ID}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    localStorage.setItem('cartCount', data.count);
+                    updateCartCount(0); // Just update UI without changing count
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching cart count:', error);
+            });
+    } else {
+        // Use localStorage as fallback
+        const cartCount = parseInt(localStorage.getItem('cartCount') || '0');
+        updateCartCount(0);
+    }
+});
 
 
     // Product search functionality
@@ -749,6 +799,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initLazyLoading();
 
 });
+
 
 
 
