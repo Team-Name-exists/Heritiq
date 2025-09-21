@@ -16,6 +16,7 @@ load_dotenv()
 # create app
 app = Flask(__name__)
 app.config.from_object('config.Config')
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 
 
 
@@ -756,14 +757,21 @@ def add_product():
         # Handle image upload
         image = request.files.get('image')
         if not image or not allowed_file(image.filename):
-            flash('Valid product image is required', 'error')
-            return render_template('add_product.html')
+        flash('Valid product image is required', 'error')
+        return render_template('add_product.html')
 
-        # Save image
+        # secure + unique filename
         filename = secure_filename(image.filename)
         unique_filename = f"{uuid.uuid4().hex}_{filename}"
+
+        # save inside static/uploads/products/
         image_path = os.path.join('products', unique_filename)
-        image.save(os.path.join(app.config['UPLOAD_FOLDER'], image_path))
+        save_path = os.path.join(app.config['UPLOAD_FOLDER'], image_path)
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)  # ensure folder exists
+        image.save(save_path)
+
+        # store only the relative path in DB (e.g. "products/uuid_filename.jpg")
+        product.image_path = image_path
 
         # Create product
         product_id = Product.create_product(
@@ -985,6 +993,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
