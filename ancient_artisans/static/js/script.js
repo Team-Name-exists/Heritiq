@@ -248,32 +248,38 @@ document.addEventListener("DOMContentLoaded", () => {
     //...................................
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Attach click event to all Add to Cart buttons
     document.querySelectorAll(".add-to-cart").forEach(button => {
         button.addEventListener("click", async () => {
             const productId = button.dataset.productId;
-            const productName = button.dataset.productName;
+            const productName = button.dataset.productName || "Item";
+
+            if (!productId) {
+                alert("Product ID not found.");
+                return;
+            }
+
+            button.disabled = true;
 
             try {
                 const response = await fetch("/cart/add", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        product_id: productId,
-                        quantity: 1
-                    })
+                    body: JSON.stringify({ product_id: productId, quantity: 1 })
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
                     alert(`${productName} added to cart!`);
+                    // Optional: update cart counter UI here
                 } else {
                     alert(result.error || "Failed to add item to cart.");
                 }
             } catch (error) {
                 console.error("Error adding to cart:", error);
                 alert("Error adding item to cart.");
+            } finally {
+                button.disabled = false;
             }
         });
     });
@@ -743,6 +749,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initLazyLoading();
 
 });
+
 
 
 
