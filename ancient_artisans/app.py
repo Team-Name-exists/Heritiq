@@ -399,7 +399,6 @@ def register_buyer():
 
 
 # ---------------- Seller Registration ----------------
-# ---------------- Seller Registration ----------------
 @app.route('/register_seller', methods=['GET', 'POST'])
 def register_seller():
     """Registration page for sellers"""
@@ -429,55 +428,20 @@ def register_seller():
             flash('Seller account created! Please login.', 'success')
             return redirect(url_for('seller_login'))
         except Exception as e:
-            get_connection().rollback()  # Use get_connection() instead of mysql.connection
-            print(f"Registration error: {e}")  # Add this for debugging
-            if "duplicate key" in str(e).lower() or "unique constraint" in str(e).lower():
+            get_connection().rollback()
+            error_msg = str(e)
+            print(f"Registration error details: {error_msg}")
+    
+            if "duplicate key" in error_msg.lower() or "unique constraint" in error_msg.lower():
                 flash('Username or email already exists', 'error')
+            elif "null value" in error_msg.lower():
+                flash('Please fill all required fields', 'error')
             else:
-                flash('An error occurred while creating your account', 'error')
-        finally:
-            cur.close()
+                flash(f'An error occurred: {error_msg}', 'error')  # Show actual error for debugging
+            finally:
+                cur.close()
 
-    return render_template('seller_register.html')# ---------------- Seller Registration ----------------
-@app.route('/register_seller', methods=['GET', 'POST'])
-def register_seller():
-    """Registration page for sellers"""
-    if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        bio = request.form.get('bio', '')  # Use get() for optional fields
-
-        # Password validation
-        if password != confirm_password:
-            flash('Passwords do not match', 'error')
-            return render_template('seller_register.html')
-
-        hashed_password = generate_password_hash(password)
-
-        cur = get_cursor()
-        try:
-            cur.execute("""
-                INSERT INTO users (username, email, password_hash, first_name, last_name, user_type, bio)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """, (username, email, hashed_password, first_name, last_name, "seller", bio))
-            get_connection().commit()  # Use get_connection() instead of mysql.connection
-            flash('Seller account created! Please login.', 'success')
-            return redirect(url_for('seller_login'))
-        except Exception as e:
-            get_connection().rollback()  # Use get_connection() instead of mysql.connection
-            print(f"Registration error: {e}")  # Add this for debugging
-            if "duplicate key" in str(e).lower() or "unique constraint" in str(e).lower():
-                flash('Username or email already exists', 'error')
-            else:
-                flash('An error occurred while creating your account', 'error')
-        finally:
-            cur.close()
-
-    return render_template('seller_register.html')
+                return render_template('seller_register.html')
 
 
 @app.route('/logout')
@@ -978,6 +942,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
