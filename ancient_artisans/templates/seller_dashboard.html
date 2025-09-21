@@ -79,8 +79,8 @@
     <div class="products-grid">
         {% for product in products %}
         <div class="product-card">
-            <img src="{{ url_for('serve_uploaded_file', filename=product.image_path) if product.image_path else 'https://placehold.co/300x200/D2B48C/FFFFFF?text=No+Image' }}" 
-                 alt="{{ product.name }}" class="product-image">
+            <img src="{{ url_for('static', filename='images/' + product.image_path) if product.image_path else 'https://placehold.co/300x200/D2B48C/FFFFFF?text=No+Image' }}" 
+                     alt="{{ product.name }}" class="product-image">
             <div class="product-info">
                 <h3 class="product-title">{{ product.name if product.name else 'Unnamed Product' }}</h3>
                 <p class="product-price"> ₹{{ "%.2f"|format(product.price) if product.price else 0.00 }}</p>
@@ -200,4 +200,5 @@ window.onclick = function(event) {
 </style>
 
 {% endblock %}
+
 
