@@ -44,7 +44,7 @@
         <a href="{{ url_for('products') }}" class="btn btn-primary">
             <i class="fas fa-shopping-bag"></i> Browse Products
         </a>
-        <a href="{{ url_for('messages_list') }}" class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);">
+        <a href="{{ url_for('messages') }}" class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);">
             <i class="fas fa-comments"></i> View Messages
         </a>
         <a href="{{ url_for('cart_view') }}" class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);">
@@ -165,7 +165,7 @@
             {% endfor %}
             
             <div style="text-align: center; margin-top: 15px;">
-                <a href="{{ url_for('messages_list') }}" class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);">
+                <a href="{{ url_for('messages') }}" class="btn btn-outline" style="color: var(--dark); border-color: var(--dark);">
                     <i class="fas fa-comments"></i> View All Messages
                 </a>
             </div>
@@ -212,3 +212,4 @@ if (cartCountElement) {
 </script>
 
 {% endblock %}
+
