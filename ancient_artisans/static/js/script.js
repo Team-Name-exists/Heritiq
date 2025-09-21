@@ -1,12 +1,17 @@
 // Login Modal Functionality
 function openLoginModal() {
     document.getElementById('loginModal').style.display = 'flex';
+    // Reset forms and errors when opening modal
+    document.querySelectorAll('form').forEach(form => form.reset());
+    const errorDiv = document.getElementById('loginError');
+    if (errorDiv) errorDiv.style.display = 'none';
 }
 
 function closeLoginModal() {
     document.getElementById('loginModal').style.display = 'none';
 }
 
+// Tab switching functionality
 const tabs = document.querySelectorAll('.tab');
 const buyerForm = document.getElementById('buyerLoginForm');
 const sellerForm = document.getElementById('sellerLoginForm');
@@ -18,7 +23,10 @@ tabs.forEach(tab => {
         // Add 'active' to clicked tab
         tab.classList.add('active');
 
-        // Show correct form
+        // Show correct form and hide errors
+        const errorDiv = document.getElementById('loginError');
+        if (errorDiv) errorDiv.style.display = 'none';
+        
         if (tab.dataset.tab === 'buyer') {
             buyerForm.style.display = 'block';
             sellerForm.style.display = 'none';
@@ -27,56 +35,8 @@ tabs.forEach(tab => {
             sellerForm.style.display = 'block';
         }
     });
-}); 
-// AI Modal Functionality
-function openAIModal() {
-    document.getElementById('aiModal').style.display = 'flex';
-}
+});
 
-function closeAIModal() {
-    document.getElementById('aiModal').style.display = 'none';
-}
-
-// Messaging Modal Functionality
-function openMessaging() {
-    document.getElementById('messagingModal').style.display = 'flex';
-}
-
-function closeMessaging() {
-    document.getElementById('messagingModal').style.display = 'none';
-}
-
-// Payment Modal Functionality
-function openPaymentModal() {
-    document.getElementById('paymentModal').style.display = 'flex';
-}
-
-function closePaymentModal() {
-    document.getElementById('paymentModal').style.display = 'none';
-}
-
-function selectPayment(method) {
-    document.querySelectorAll('.payment-method').forEach(el => {
-        el.classList.remove('selected');
-    });
-    
-    event.currentTarget.classList.add('selected');
-}
-
-// Close modals when clicking outside
-window.onclick = function(event) {
-    const loginModal = document.getElementById('loginModal');
-    const aiModal = document.getElementById('aiModal');
-    const messagingModal = document.getElementById('messagingModal');
-    const paymentModal = document.getElementById('paymentModal');
-    
-    if (event.target === loginModal) closeLoginModal();
-    if (event.target === aiModal) closeAIModal();
-    if (event.target === messagingModal) closeMessaging();
-    if (event.target === paymentModal) closePaymentModal();
-};
-
-    
 // Buyer login form submission
 document.getElementById('buyerLoginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -114,18 +74,18 @@ document.getElementById('buyerLoginForm').addEventListener('submit', async funct
 // Seller login form submission
 const sellerLoginForm = document.getElementById('sellerLoginForm');
 if (sellerLoginForm) {
-    sellerLoginForm.addEventListener('submit', async function(e)){
+    sellerLoginForm.addEventListener('submit', async function(e) {  // Fixed syntax error here
         e.preventDefault();
         
         const formData = new FormData(this);
         const data = {
             email: formData.get('email'),
             password: formData.get('password'),
-            verification_code: formData.get('verification_code') // Added verification code
+            verification_code: formData.get('verification_code')
         };
         
         try {
-            const response = await fetch('/seller_login', { // Fixed endpoint
+            const response = await fetch('/seller_login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
@@ -176,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Tab switching function
+// Tab switching function (single definition)
 window.switchTab = function(tab) {
     const tabs = document.querySelectorAll('.tab');
     const buyerForm = document.getElementById('buyerLoginForm');
@@ -200,31 +160,54 @@ window.switchTab = function(tab) {
         if (sellerForm) sellerForm.style.display = 'block';
     }
 }
-    
-    // Tab switching function
-    window.switchTab = function(tab) {
-        const tabs = document.querySelectorAll('.tab');
-        const buyerForm = document.getElementById('buyerLoginForm');
-        const sellerForm = document.getElementById('sellerLoginForm');
-        
-        // Hide error message when switching tabs
-        if (errorDiv) {
-            errorDiv.style.display = 'none';
-        }
-        
-        tabs.forEach(t => t.classList.remove('active'));
-        
-        if (tab === 'buyer') {
-            document.querySelector('.tab:first-child').classList.add('active');
-            if (buyerForm) buyerForm.style.display = 'block';
-            if (sellerForm) sellerForm.style.display = 'none';
-        } else {
-            document.querySelector('.tab:last-child').classList.add('active');
-            if (buyerForm) buyerForm.style.display = 'none';
-            if (sellerForm) sellerForm.style.display = 'block';
-        }
-    }
 
+// AI Modal Functionality
+function openAIModal() {
+    document.getElementById('aiModal').style.display = 'flex';
+}
+
+function closeAIModal() {
+    document.getElementById('aiModal').style.display = 'none';
+}
+
+// Messaging Modal Functionality
+function openMessaging() {
+    document.getElementById('messagingModal').style.display = 'flex';
+}
+
+function closeMessaging() {
+    document.getElementById('messagingModal').style.display = 'none';
+}
+
+// Payment Modal Functionality
+function openPaymentModal() {
+    document.getElementById('paymentModal').style.display = 'flex';
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+}
+
+function selectPayment(method) {
+    document.querySelectorAll('.payment-method').forEach(el => {
+        el.classList.remove('selected');
+    });
+    
+    event.currentTarget.classList.add('selected');
+}
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    const loginModal = document.getElementById('loginModal');
+    const aiModal = document.getElementById('aiModal');
+    const messagingModal = document.getElementById('messagingModal');
+    const paymentModal = document.getElementById('paymentModal');
+    
+    if (event.target === loginModal) closeLoginModal();
+    if (event.target === aiModal) closeAIModal();
+    if (event.target === messagingModal) closeMessaging();
+    if (event.target === paymentModal) closePaymentModal();
+};
     
     // Language selector functionality
     const languageBtn = document.querySelector('.language-btn');
@@ -730,4 +713,5 @@ document.addEventListener('DOMContentLoaded', function() {
     initLazyLoading();
 
 });
+
 
