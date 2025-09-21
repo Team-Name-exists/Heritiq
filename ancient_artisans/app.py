@@ -728,14 +728,13 @@ def seller_dashboard():
     # Get seller stats
     stats = Order.get_seller_stats(session['user_id'])
 
-    # Get recent messages
-    recent_messages = Message.get_user_conversations(session['user_id'])
+    # Temporarily disable messages to fix dashboard
+    recent_messages = []
 
     return render_template('seller_dashboard.html',
                            products=products,
                            stats=stats,
                            recent_messages=recent_messages)
-
 
 @app.route('/seller/product/add', methods=['GET', 'POST'])
 def add_product():
@@ -986,6 +985,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
