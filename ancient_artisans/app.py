@@ -867,7 +867,7 @@ def get_user_conversations(cls, user_id):
     """
     
     cursor = get_db_cursor()
-    cursor.execute(query, (user_id, user_id, user_id, user_id, user_id, user_id))
+    cursor.execute(query, (user_id, user_id, user_id, user_id, user_id, user_id, user_id))
     conversations = cursor.fetchall()
     
     result = []
@@ -1016,6 +1016,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
