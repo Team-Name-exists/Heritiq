@@ -762,10 +762,10 @@ def add_product():
         filename = secure_filename(image.filename)
         unique_filename = f"{uuid.uuid4().hex}_{filename}"
 
-        # save inside static/uploads/products/
-        image_path = os.path.join('products', unique_filename)
-        save_path = os.path.join(app.config['UPLOAD_FOLDER'], image_path)
         
+       # Save product image to static/images/products/
+        image_path = os.path.join('products', unique_filename)
+        save_path = os.path.join(app.root_path, 'static', 'images', image_path)
         print(f"Image will be saved to: {save_path}")
         
         os.makedirs(os.path.dirname(save_path), exist_ok=True)  # ensure folder exists
@@ -1016,6 +1016,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
