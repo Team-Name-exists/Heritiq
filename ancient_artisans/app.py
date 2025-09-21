@@ -834,7 +834,6 @@ def get_user_conversations(cls, user_id):
             WHERE receiver_id = %s AND is_read = false
             GROUP BY sender_id
         )
-        
         SELECT 
             u.id as other_user_id,
             u.username as other_username,
@@ -845,11 +844,12 @@ def get_user_conversations(cls, user_id):
         FROM last_messages lm
         JOIN users u ON u.id = lm.other_user_id
         JOIN messages m ON (
-            (m.sender_id = %s AND m.receiver_id = u.id) OR 
-            (m.sender_id = u.id AND m.receiver_id = %s)
-        ) AND m.timestamp = lm.max_timestamp
+            ((m.sender_id = %s AND m.receiver_id = u.id) OR 
+             (m.sender_id = u.id AND m.receiver_id = %s))
+            AND m.timestamp = lm.max_timestamp
+        )
         LEFT JOIN unread_counts uc ON u.id = uc.sender_id
-        ORDER BY m.timestamp DESC
+        ORDER BY m.timestamp DESC;
     """
     
     cursor = get_db_cursor()
@@ -868,6 +868,7 @@ def get_user_conversations(cls, user_id):
         })
     
     return result
+
 
 
 @app.route('/messages/send', methods=['POST'])
@@ -992,6 +993,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
