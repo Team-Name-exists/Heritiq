@@ -811,49 +811,52 @@ def messages():
 def get_user_conversations(cls, user_id):
     """Get all unique conversations for a user with last message details"""
     query = """
-        WITH last_messages AS (
-            SELECT 
+        WITH convo AS (
+            SELECT DISTINCT ON (
                 CASE 
-                    WHEN sender_id = %s THEN receiver_id 
-                    ELSE sender_id 
-                END as other_user_id,
-                MAX(timestamp) as max_timestamp
+                    WHEN sender_id = %s THEN receiver_id
+                    ELSE sender_id
+                END
+            )
+                CASE 
+                    WHEN sender_id = %s THEN receiver_id
+                    ELSE sender_id
+                END AS other_user_id,
+                id AS message_id,
+                content,
+                timestamp,
+                sender_id,
+                receiver_id
             FROM messages
             WHERE sender_id = %s OR receiver_id = %s
-            GROUP BY 
+            ORDER BY 
                 CASE 
-                    WHEN sender_id = %s THEN receiver_id 
-                    ELSE sender_id 
-                END
+                    WHEN sender_id = %s THEN receiver_id
+                    ELSE sender_id
+                END,
+                timestamp DESC
         ),
         unread_counts AS (
-            SELECT 
-                sender_id,
-                COUNT(*) as unread_count
+            SELECT sender_id, COUNT(*) AS unread_count
             FROM messages
             WHERE receiver_id = %s AND is_read = false
             GROUP BY sender_id
         )
         SELECT 
-            u.id as other_user_id,
-            u.username as other_username,
-            u.profile_picture as other_profile_picture,
-            m.content as last_message,
-            m.timestamp as last_message_time,
-            COALESCE(uc.unread_count, 0) as unread_count
-        FROM last_messages lm
-        JOIN users u ON u.id = lm.other_user_id
-        JOIN messages m ON (
-            ((m.sender_id = %s AND m.receiver_id = u.id) OR 
-             (m.sender_id = u.id AND m.receiver_id = %s))
-            AND m.timestamp = lm.max_timestamp
-        )
+            u.id AS other_user_id,
+            u.username AS other_username,
+            u.profile_picture AS other_profile_picture,
+            c.content AS last_message,
+            c.timestamp AS last_message_time,
+            COALESCE(uc.unread_count, 0) AS unread_count
+        FROM convo c
+        JOIN users u ON u.id = c.other_user_id
         LEFT JOIN unread_counts uc ON u.id = uc.sender_id
-        ORDER BY m.timestamp DESC;
+        ORDER BY c.timestamp DESC;
     """
     
     cursor = get_db_cursor()
-    cursor.execute(query, (user_id, user_id, user_id, user_id, user_id, user_id, user_id))
+    cursor.execute(query, (user_id, user_id, user_id, user_id, user_id, user_id))
     conversations = cursor.fetchall()
     
     result = []
@@ -993,6 +996,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
