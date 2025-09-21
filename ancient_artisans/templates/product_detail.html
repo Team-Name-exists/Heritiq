@@ -7,8 +7,8 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
         <!-- Product Image -->
         <div>
-            <img src="{{ url_for('serve_uploaded_file', filename=product.image_path) if product.image_path else 'https://placehold.co/300x200/D2B48C/FFFFFF?text=No+Image' }}" 
-                 alt="{{ product.name }}" class="product-image">
+            <img src="{{ url_for('static', filename='images/' + product.image_path) if product.image_path else 'https://placehold.co/300x200/D2B48C/FFFFFF?text=No+Image' }}" 
+                     alt="{{ product.name }}" class="product-image">
         </div>
         
         <!-- Product Info -->
@@ -89,8 +89,8 @@
     <div style="background: var(--light); padding: 30px; border-radius: 8px; margin-bottom: 40px;">
         <h2>About the Artisan</h2>
         <div style="display: grid; grid-template-columns: 100px 1fr; gap: 20px; align-items: center;">
-            <img src="{% if product.seller_bio %}{{ url_for('static', filename='uploads/profiles/' + product.seller_bio) }}{% else %}https://placehold.co/100x100/D2B48C/FFFFFF?text={{ product.seller_name|first }}{% endif %}" 
-                 alt="{{ product.seller_name }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
+            <img src="{% if product.seller_profile_picture %}{{ url_for('static', filename='images/profiles/' + product.seller_profile_picture) }}{% else %}https://placehold.co/100x100/D2B48C/FFFFFF?text={{ product.seller_name|first }}{% endif %}" 
+                     alt="{{ product.seller_name }}">
             <div>
                 <h3>{{ product.seller_name }}</h3>
                 <p>{{ product.seller_bio or 'This artisan specializes in creating beautiful handcrafted items with attention to detail and quality craftsmanship.' }}</p>
@@ -108,8 +108,8 @@
         <div class="products-grid">
             {% for product in related_products %}
             <div class="product-card">
-                <img src="{{ url_for('serve_uploaded_file', filename=product.image_path) if product.image_path else 'https://placehold.co/300x200/D2B48C/FFFFFF?text=No+Image' }}" 
-                     alt="{{ product.name }}" class="product-image">
+                <img src="{{ url_for('static', filename='images/' + product.image_path) if product.image_path else 'https://placehold.co/300x200/D2B48C/FFFFFF?text=No+Image' }}" 
+                         alt="{{ product.name }}" class="product-image">
                 <div class="product-info">
                     <h3 class="product-title">{{ product.name }}</h3>
                     <p class="product-artisan">By: {{ product.seller_name }}</p>
@@ -149,4 +149,5 @@ function openMessaging() {
 </script>
 
 {% endblock %}
+
 
