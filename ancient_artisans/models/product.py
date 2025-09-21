@@ -130,7 +130,7 @@ class Product:
         except Exception as e:
             print(f"Error deleting product: {e}")
             return False
-         finally:
+        finally:
             cursor.close()
     
    @staticmethod
@@ -181,3 +181,4 @@ class Product:
         products = cursor.fetchall()
         cursor.close()
         return products
+
