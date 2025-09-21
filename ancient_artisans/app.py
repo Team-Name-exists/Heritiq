@@ -17,7 +17,7 @@ load_dotenv()
 # create app
 app = Flask(__name__)
 app.config.from_object('config.Config')
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+app.config['UPLOAD_FOLDER'] = os.path.join(app.config['STATIC_FOLDER'], 'uploads')
 
 
 
@@ -746,20 +746,17 @@ def add_product():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        name = request.form.get('name')
-        description = request.form.get('description')
-        category = request.form.get('category')
-        price = request.form.get('price', type=float)
-        materials = request.form.get('materials')
-        dimensions = request.form.get('dimensions')
-        weight = request.form.get('weight', type=float)
-        quantity = request.form.get('quantity', 1, type=int)
-
+        # ... [your existing form data handling] ...
+        
         # Handle image upload
         image = request.files.get('image')
         if not image or not allowed_file(image.filename):
             flash('Valid product image is required', 'error')
             return render_template('add_product.html')
+
+        # Debug: Print upload folder path
+        print(f"UPLOAD_FOLDER: {app.config['UPLOAD_FOLDER']}")
+        print(f"Image filename: {image.filename}")
 
         # secure + unique filename
         filename = secure_filename(image.filename)
@@ -768,8 +765,20 @@ def add_product():
         # save inside static/uploads/products/
         image_path = os.path.join('products', unique_filename)
         save_path = os.path.join(app.config['UPLOAD_FOLDER'], image_path)
+        
+        print(f"Image will be saved to: {save_path}")
+        
         os.makedirs(os.path.dirname(save_path), exist_ok=True)  # ensure folder exists
         image.save(save_path)
+
+        # Verify the file was actually saved
+        if os.path.exists(save_path):
+            print(f"✅ Image successfully saved to: {save_path}")
+            print(f"✅ File size: {os.path.getsize(save_path)} bytes")
+        else:
+            print(f"❌ Image was NOT saved to: {save_path}")
+            flash('Failed to save image', 'error')
+            return render_template('add_product.html')
 
         # Create product
         product_id = Product.create_product(
@@ -991,10 +1000,10 @@ def debug_schema():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/uploads/<path:filename>')
+@app.route('/static/uploads/<path:filename>')
 def serve_uploaded_file(filename):
-    """Serve uploaded files (images)"""
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    """Serve uploaded files from static/uploads"""
+    return send_from_directory(os.path.join(app.root_path, 'static', 'uploads'), filename)
 
 
 @app.route('/health')
@@ -1003,6 +1012,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
