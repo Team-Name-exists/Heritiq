@@ -771,6 +771,13 @@ def add_product():
         os.makedirs(os.path.dirname(save_path), exist_ok=True)  # ensure folder exists
         image.save(save_path)
 
+
+        # After saving the image:
+        print(f"UPLOAD_FOLDER: {app.config['UPLOAD_FOLDER']}")
+        print(f"Image saved to: {save_path}")
+        print(f"File exists: {os.path.exists(save_path)}")
+        print(f"File size: {os.path.getsize(save_path) if os.path.exists(save_path) else 'N/A'} bytes")
+
         # Verify the file was actually saved
         if os.path.exists(save_path):
             print(f"✅ Image successfully saved to: {save_path}")
@@ -1040,6 +1047,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
