@@ -183,7 +183,8 @@ document.querySelectorAll('.add-to-cart').forEach(button => {
         const productPrice = this.getAttribute('data-product-price');
         
         // In a real implementation, this would add to cart via AJAX
-        alert(`Added  ₹{productName} to cart!`);
+        alert(`Added ${productName} to cart!`);
+
         
         // Update cart count
         updateCartCount(1);
@@ -212,4 +213,5 @@ if (cartCountElement) {
 </script>
 
 {% endblock %}
+
 
