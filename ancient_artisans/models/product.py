@@ -3,41 +3,33 @@ from .database import get_cursor, get_connection
 from datetime import datetime
 
 class Product:
-@staticmethod
-def create_product(seller_id, name, description, category, price, image_path, **kwargs):
-    """Create a new product"""
-    cursor = get_cursor()
+    @staticmethod
+    def create_product(seller_id, name, description, category, price, image_path, **kwargs):
+        """Create a new product"""
+        cursor = get_cursor()
 
-    query = """
-        INSERT INTO products (seller_id, name, description, category, price, image_path,
-                            materials, dimensions, weight, quantity, ai_suggested_price)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        RETURNING id
-    """
-    values = (
-        seller_id, name, description, category, price, image_path,
-        kwargs.get('materials'), kwargs.get('dimensions'), kwargs.get('weight'),
-        kwargs.get('quantity', 1), kwargs.get('ai_suggested_price')
-    )
+        query = """
+            INSERT INTO products (seller_id, name, description, category, price, image_path,
+                                materials, dimensions, weight, quantity, ai_suggested_price)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """
+        values = (
+            seller_id, name, description, category, price, image_path,
+            kwargs.get('materials'), kwargs.get('dimensions'), kwargs.get('weight'),
+            kwargs.get('quantity', 1), kwargs.get('ai_suggested_price')
+        )
 
-    try:
-        cursor.execute(query, values)
-        result = cursor.fetchone()
-        product_id = result['id'] if result else None
-        
-        # Commit the transaction
-        conn = get_connection()
-        conn.commit()
-        
-        return product_id
-    except Exception as e:
-        print(f"Error creating product: {e}")
-        # Rollback in case of error
-        conn = get_connection()
-        conn.rollback()
-        return None
-    finally:
-        cursor.close()
+        try:
+            cursor.execute(query, values)
+            result = cursor.fetchone()
+            product_id = result['id'] if result else None
+            return product_id
+        except Exception as e:
+            print(f"Error creating product: {e}")
+            return None
+        finally:
+            cursor.close()
 
     @staticmethod
     def get_product_by_id(product_id):
@@ -119,7 +111,6 @@ def create_product(seller_id, name, description, category, price, image_path, **
 
         try:
             cursor.execute(query, values)
-            get_connection().commit()
             return cursor.rowcount > 0
         except Exception as e:
             print(f"Error updating product: {e}")
@@ -135,15 +126,14 @@ def create_product(seller_id, name, description, category, price, image_path, **
 
         try:
             cursor.execute(query, (product_id,))
-            get_connection().commit()
             return cursor.rowcount > 0
         except Exception as e:
             print(f"Error deleting product: {e}")
             return False
-        finally:
+         finally:
             cursor.close()
-
-    @staticmethod
+    
+   @staticmethod
     def get_related_products(product_id, category, limit=4):
         """Get related products by category"""
         cursor = get_cursor()
@@ -152,7 +142,7 @@ def create_product(seller_id, name, description, category, price, image_path, **
             FROM products p 
             JOIN users u ON p.seller_id = u.id 
             WHERE p.category = %s AND p.id != %s AND p.is_available = TRUE 
-            ORDER BY RAND() 
+            ORDER BY RANDOM() 
             LIMIT %s
         """
         cursor.execute(query, (category, product_id, limit))
@@ -168,7 +158,6 @@ def create_product(seller_id, name, description, category, price, image_path, **
 
         try:
             cursor.execute(query, (suggested_price, product_id))
-            get_connection().commit()
             return cursor.rowcount > 0
         except Exception as e:
             print(f"Error updating AI suggested price: {e}")
@@ -192,6 +181,3 @@ def create_product(seller_id, name, description, category, price, image_path, **
         products = cursor.fetchall()
         cursor.close()
         return products
-
-
-
