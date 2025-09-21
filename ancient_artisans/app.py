@@ -438,7 +438,7 @@ def register_seller():
                 flash('Please fill all required fields', 'error')
             else:
                 flash(f'An error occurred: {error_msg}', 'error')  # Show actual error for debugging
-            finally:
+        finally:
                 cur.close()
 
                 return render_template('seller_register.html')
@@ -942,6 +942,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
