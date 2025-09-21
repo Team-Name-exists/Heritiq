@@ -149,49 +149,50 @@
         </div>
     </footer>
 
-    <!-- Login Modal -->
-    <div class="modal" id="loginModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Login to AncientArtisans</h2>
-                <button class="close-modal" onclick="closeLoginModal()">&times;</button>
+<!-- Login Modal -->
+<div class="modal" id="loginModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Login to AncientArtisans</h2>
+            <button class="close-modal" onclick="closeLoginModal()">&times;</button>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="loginError" style="display: none; color: red; padding: 10px; margin: 10px 0; background: #ffebee; border-radius: 4px;"></div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="buyer">Buyer Login</div>
+            <div class="tab" data-tab="seller">Seller Login</div>
+        </div>
+
+        <!-- Buyer Login Form -->
+        <form id="buyerLoginForm">
+            <div class="form-group">
+                <label for="buyerEmail">Email Address</label>
+                <input type="email" id="buyerEmail" name="email" placeholder="Enter your email" required>
             </div>
-           <div class="tabs">
-    <div class="tab active" data-tab="buyer">Buyer Login</div>
-    <div class="tab" data-tab="seller">Seller Login</div>
-</div>
+            <div class="form-group">
+                <label for="buyerPassword">Password</label>
+                <input type="password" id="buyerPassword" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Login as Buyer</button>
+        </form>
 
-<form id="buyerLoginForm">
-    <input type="hidden" name="user_type" value="buyer">
-    <div class="form-group">
-        <label for="buyerEmail">Email Address</label>
-        <input type="email" id="buyerEmail" name="email" placeholder="Enter your email" required>
-    </div>
-    <div class="form-group">
-        <label for="buyerPassword">Password</label>
-        <input type="password" id="buyerPassword" name="password" placeholder="Enter your password" required>
-    </div>
-    <button type="submit" class="btn btn-primary" style="width: 100%;">Login as Buyer</button>
-    <p style="text-align: center; margin-top: 15px;">
-        Don't have an account? <a href="{{ url_for('register_buyer') }}" style="color: var(--accent);">Join as Buyer</a>
-    </p>
-</form>
-
-<form id="sellerLoginForm" style="display: none;">
-    <input type="hidden" name="user_type" value="seller">
-    <div class="form-group">
-        <label for="sellerEmail">Email Address</label>
-        <input type="email" id="sellerEmail" name="email" placeholder="Enter your email" required>
-    </div>
-    <div class="form-group">
-        <label for="sellerPassword">Password</label>
-        <input type="password" id="sellerPassword" name="password" placeholder="Enter your password" required>
-    </div>
-    <div class="form-group">
-        <label for="sellerCode">Artisan Verification Code</label>
-        <input type="text" id="sellerCode" name="verification_code" placeholder="Enter verification code">
-    </div>
-    <button type="submit" class="btn btn-primary" style="width: 100%;">Login as Seller</button>
+        <!-- Seller Login Form -->
+        <form id="sellerLoginForm" style="display: none;">
+            <div class="form-group">
+                <label for="sellerEmail">Email Address</label>
+                <input type="email" id="sellerEmail" name="email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="sellerPassword">Password</label>
+                <input type="password" id="sellerPassword" name="password" placeholder="Enter your password" required>
+            </div>
+            <div class="form-group">
+                <label for="sellerCode">Artisan Verification Code</label>
+                <input type="text" id="sellerCode" name="verification_code" placeholder="Enter verification code" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Login as Seller</button>
     <p style="text-align: center; margin-top: 15px;">
         Not registered as seller? <a href="{{ url_for('register_seller') }}" style="color: var(--accent);">Apply now</a>
     </p>
@@ -199,4 +200,5 @@
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>
