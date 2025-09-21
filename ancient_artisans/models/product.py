@@ -3,31 +3,41 @@ from .database import get_cursor, get_connection
 from datetime import datetime
 
 class Product:
-    @staticmethod
-    def create_product(seller_id, name, description, category, price, image_path, **kwargs):
-        """Create a new product"""
-        cursor = get_cursor()
+@staticmethod
+def create_product(seller_id, name, description, category, price, image_path, **kwargs):
+    """Create a new product"""
+    cursor = get_cursor()
 
-        query = """
-            INSERT INTO products (seller_id, name, description, category, price, image_path,
-                                materials, dimensions, weight, quantity, ai_suggested_price)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """
-        values = (
-            seller_id, name, description, category, price, image_path,
-            kwargs.get('materials'), kwargs.get('dimensions'), kwargs.get('weight'),
-            kwargs.get('quantity', 1), kwargs.get('ai_suggested_price')
-        )
+    query = """
+        INSERT INTO products (seller_id, name, description, category, price, image_path,
+                            materials, dimensions, weight, quantity, ai_suggested_price)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id
+    """
+    values = (
+        seller_id, name, description, category, price, image_path,
+        kwargs.get('materials'), kwargs.get('dimensions'), kwargs.get('weight'),
+        kwargs.get('quantity', 1), kwargs.get('ai_suggested_price')
+    )
 
-        try:
-            cursor.execute(query, values)
-            get_connection().commit()
-            return cursor.lastrowid
-        except Exception as e:
-            print(f"Error creating product: {e}")
-            return None
-        finally:
-            cursor.close()
+    try:
+        cursor.execute(query, values)
+        result = cursor.fetchone()
+        product_id = result['id'] if result else None
+        
+        # Commit the transaction
+        conn = get_connection()
+        conn.commit()
+        
+        return product_id
+    except Exception as e:
+        print(f"Error creating product: {e}")
+        # Rollback in case of error
+        conn = get_connection()
+        conn.rollback()
+        return None
+    finally:
+        cursor.close()
 
     @staticmethod
     def get_product_by_id(product_id):
@@ -182,5 +192,6 @@ class Product:
         products = cursor.fetchall()
         cursor.close()
         return products
+
 
 
