@@ -399,9 +399,9 @@ def register_buyer():
 
 
 # ---------------- Seller Registration ----------------
-@app.route('/register_seller', methods=['GET', 'POST'])
-def register_seller():
-    """Registration page for sellers"""
+@app.route('/register_buyer', methods=['GET', 'POST'])
+def register_buyer():
+    """Registration page for buyers"""
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
@@ -409,39 +409,46 @@ def register_seller():
         confirm_password = request.form['confirm_password']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
-        bio = request.form.get('bio', '')  # Use get() for optional fields
 
         # Password validation
         if password != confirm_password:
             flash('Passwords do not match', 'error')
-            return render_template('seller_register.html')
+            return render_template('buyer_register.html')
 
         hashed_password = generate_password_hash(password)
 
-        cur = get_cursor()
+        cursor = None
         try:
-            cur.execute("""
-                INSERT INTO users (username, email, password_hash, first_name, last_name, user_type, bio)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """, (username, email, hashed_password, first_name, last_name, "seller", bio))
-            get_connection().commit()  # Use get_connection() instead of mysql.connection
-            flash('Seller account created! Please login.', 'success')
-            return redirect(url_for('seller_login'))
+            cursor = get_cursor()
+            cursor.execute("""
+                INSERT INTO users (username, email, password_hash, first_name, last_name, user_type)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (username, email, hashed_password, first_name, last_name, "buyer"))
+            
+            get_connection().commit()
+            flash('Buyer account created! Please login.', 'success')
+            return redirect(url_for('buyer_login'))
+            
         except Exception as e:
-            get_connection().rollback()
             error_msg = str(e)
-            print(f"Registration error details: {error_msg}")
-    
-            if "duplicate key" in error_msg.lower() or "unique constraint" in error_msg.lower():
+            print(f"Buyer registration error: {error_msg}")
+            
+            if get_connection():
+                get_connection().rollback()
+            
+            if "duplicate key" in error_msg.lower() or "unique_violation" in error_msg.lower():
                 flash('Username or email already exists', 'error')
             elif "null value" in error_msg.lower():
                 flash('Please fill all required fields', 'error')
             else:
-                flash(f'An error occurred: {error_msg}', 'error')  # Show actual error for debugging
+                flash('An error occurred while creating your account', 'error')
+                
         finally:
-                cur.close()
-
-                return render_template('seller_register.html')
+            if cursor:
+                cursor.close()
+    
+    # ✅ Make sure this return statement is at the end
+    return render_template('buyer_register.html')
 
 
 @app.route('/logout')
@@ -942,6 +949,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
