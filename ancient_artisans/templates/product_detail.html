@@ -7,8 +7,8 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
         <!-- Product Image -->
         <div>
-            <img src="{{ url_for('serve_uploaded_file', filename=product.image_path) }}" 
-                         alt="{{ product.name }}" style="width: 100%; border-radius: 8px;">
+            <img src="{{ url_for('serve_uploaded_file', filename=product.image_path) if product.image_path else 'https://placehold.co/300x200/D2B48C/FFFFFF?text=No+Image' }}" 
+                 alt="{{ product.name }}" class="product-image">
         </div>
         
         <!-- Product Info -->
@@ -108,7 +108,8 @@
         <div class="products-grid">
             {% for product in related_products %}
             <div class="product-card">
-                <img src="{{ url_for('static', filename='uploads/' + product.image_path) }}" alt="{{ product.name }}" class="product-image">
+                <img src="{{ url_for('serve_uploaded_file', filename=product.image_path) if product.image_path else 'https://placehold.co/300x200/D2B48C/FFFFFF?text=No+Image' }}" 
+                     alt="{{ product.name }}" class="product-image">
                 <div class="product-info">
                     <h3 class="product-title">{{ product.name }}</h3>
                     <p class="product-artisan">By: {{ product.seller_name }}</p>
@@ -148,3 +149,4 @@ function openMessaging() {
 </script>
 
 {% endblock %}
+
