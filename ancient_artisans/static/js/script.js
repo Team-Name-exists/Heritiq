@@ -646,7 +646,7 @@ function ajaxRequest(url, method, data, successCallback, errorCallback) {
 function formatCurrency(amount) {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'INR'
     }).format(amount);
 }
 
@@ -690,22 +690,52 @@ function initLazyLoading() {
     if ('IntersectionObserver' in window) {
         const lazyImages = document.querySelectorAll('img[data-src]');
         
+        // Options for the observer: load 200px before entering viewport
+        const observerOptions = {
+            rootMargin: '200px 0px',
+            threshold: 0.01
+        };
+
         const imageObserver = new IntersectionObserver((entries, observer) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const img = entry.target;
-                    img.src = img.getAttribute('data-src');
+
+                    // Optional: Add a loading state class if needed
+                    // img.classList.add('loading');
+
+                    img.onload = function() {
+                        // Mark the image as loaded for CSS transitions
+                        img.classList.add('loaded');
+                    };
+                    img.onerror = function() {
+                        // Provide a fallback on error
+                        img.src = '/images/fallback.jpg';
+                    };
+
+                    // Swap the data-src for the real src
+                    img.src = img.dataset.src;
                     img.removeAttribute('data-src');
                     imageObserver.unobserve(img);
                 }
             });
-        });
+        }, observerOptions); // Pass the options here
         
         lazyImages.forEach(img => {
             imageObserver.observe(img);
         });
+    } else {
+        // Fallback for older browsers: eagerly load all images
+        const lazyImages = document.querySelectorAll('img[data-src]');
+        lazyImages.forEach(img => {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+        });
     }
 }
+
+// Don't forget to call the function!
+// initLazyLoading(); or call it on DOMContentLoaded
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -713,5 +743,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initLazyLoading();
 
 });
+
 
 
