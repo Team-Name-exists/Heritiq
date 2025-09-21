@@ -22,38 +22,40 @@ class Cart:
         cursor.close()
         return cart_id
     
-    @staticmethod
-    def get_cart_items(user_id):
-        """Get all items in a user's cart"""
-        cursor = get_cursor()
-        
-        query = """
-            SELECT 
-                ci.id as cart_item_id, 
-                p.id as product_id, 
-                p.name, 
-                p.image_path,
-                ci.quantity, 
-                p.price,
-                (ci.quantity * p.price) as total_price
-            FROM cart_items ci
-            JOIN carts c ON ci.cart_id = c.id
-            JOIN products p ON ci.product_id = p.id
-            WHERE c.user_id = %s
-        """
-        
-        cursor.execute(query, (user_id,))
-        items = cursor.fetchall()
-        cursor.close()
-        
-        # Convert Decimal to float for JSON serialization
-        for item in items:
-            if 'price' in item and item['price']:
-                item['price'] = float(item['price'])
-            if 'total_price' in item and item['total_price']:
-                item['total_price'] = float(item['total_price'])
-        
-        return items
+   @staticmethod
+   def get_cart_items(user_id):
+    """Get all items in a user's cart"""
+    cursor = get_cursor()
+    
+    query = """
+        SELECT 
+            ci.id as cart_item_id, 
+            p.id as product_id, 
+            p.name, 
+            p.image_path,
+            ci.quantity, 
+            p.price,
+            (ci.quantity * p.price) as total_price
+        FROM cart_items ci
+        JOIN carts c ON ci.cart_id = c.id
+        JOIN products p ON ci.product_id = p.id
+        WHERE c.user_id = %s
+    """
+    
+    cursor.execute(query, (user_id,))
+    items = cursor.fetchall()
+    cursor.close()
+    
+    # Convert Decimal to float for JSON serialization and ensure quantity is int
+    for item in items:
+        if 'quantity' in item and item['quantity']:
+            item['quantity'] = int(item['quantity'])
+        if 'price' in item and item['price']:
+            item['price'] = float(item['price'])
+        if 'total_price' in item and item['total_price']:
+            item['total_price'] = float(item['total_price'])
+    
+    return items
     
     @staticmethod
     def add_to_cart(user_id, product_id, quantity=1):
@@ -139,4 +141,5 @@ class Cart:
         items = Cart.get_cart_items(user_id)
 
         return sum(item['total_price'] for item in items) if items else 0
+
 
