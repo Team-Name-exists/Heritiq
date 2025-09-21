@@ -8,6 +8,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from models.cart import Cart
+from flask import send_from_directory
 from models.database import get_cursor
 from models.database import get_connection
 # load env
@@ -990,12 +991,19 @@ def debug_schema():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/uploads/<path:filename>')
+def serve_uploaded_file(filename):
+    """Serve uploaded files (images)"""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
 @app.route('/health')
 def health_check():
     return jsonify({'status': 'healthy'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
