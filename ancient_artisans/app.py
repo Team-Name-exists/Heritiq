@@ -756,9 +756,9 @@ def add_product():
 
         # Handle image upload
         image = request.files.get('image')
-    if not image or not allowed_file(image.filename):
-        flash('Valid product image is required', 'error')
-        return render_template('add_product.html')
+        if not image or not allowed_file(image.filename):
+            flash('Valid product image is required', 'error')
+            return render_template('add_product.html')
 
         # secure + unique filename
         filename = secure_filename(image.filename)
@@ -770,9 +770,6 @@ def add_product():
         os.makedirs(os.path.dirname(save_path), exist_ok=True)  # ensure folder exists
         image.save(save_path)
 
-        # store only the relative path in DB (e.g. "products/uuid_filename.jpg")
-        product.image_path = image_path
-
         # Create product
         product_id = Product.create_product(
             seller_id=session['user_id'],
@@ -780,7 +777,7 @@ def add_product():
             description=description,
             category=category,
             price=price,
-            image_path=image_path,
+            image_path=image_path,  # stored relative path
             materials=materials,
             dimensions=dimensions,
             weight=weight,
@@ -793,7 +790,9 @@ def add_product():
         else:
             flash('Failed to add product', 'error')
 
+    # GET request → just show the form
     return render_template('add_product.html')
+
 
 
 @app.route('/messages')
@@ -993,6 +992,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
