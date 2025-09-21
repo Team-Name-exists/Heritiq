@@ -17,7 +17,7 @@ load_dotenv()
 # create app
 app = Flask(__name__)
 app.config.from_object('config.Config')
-app.config['UPLOAD_FOLDER'] = os.path.join(app.config['STATIC_FOLDER'], 'uploads')
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
 
 
 
@@ -1012,6 +1012,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
