@@ -801,29 +801,67 @@ def messages():
     return render_template('messages.html', conversations=conversations)
 
 
-@app.route('/messages/<int:user_id>')
-def conversation(user_id):
-    """Conversation with a specific user"""
-    if 'user_id' not in session:
-        flash('Please login to view messages', 'error')
-        return redirect(url_for('login'))
-
-    # Get the other user's details
-    other_user = User.get_user_by_id(user_id)
-
-    if not other_user:
-        flash('User not found', 'error')
-        return redirect(url_for('messages'))
-
-    # Get messages
-    messages_ = Message.get_conversation(session['user_id'], user_id)
-
-    # Mark messages as read
-    Message.mark_as_read(user_id, session['user_id'])
-
-    return render_template('conversation.html',
-                           messages=messages_,
-                           other_user=other_user)
+@classmethod
+def get_user_conversations(cls, user_id):
+    """Get all unique conversations for a user with last message details"""
+    query = """
+        WITH last_messages AS (
+            SELECT 
+                CASE 
+                    WHEN sender_id = %s THEN receiver_id 
+                    ELSE sender_id 
+                END as other_user_id,
+                MAX(timestamp) as max_timestamp
+            FROM messages
+            WHERE sender_id = %s OR receiver_id = %s
+            GROUP BY 
+                CASE 
+                    WHEN sender_id = %s THEN receiver_id 
+                    ELSE sender_id 
+                END
+        ),
+        unread_counts AS (
+            SELECT 
+                sender_id,
+                COUNT(*) as unread_count
+            FROM messages
+            WHERE receiver_id = %s AND is_read = false
+            GROUP BY sender_id
+        )
+        
+        SELECT 
+            u.id as other_user_id,
+            u.username as other_username,
+            u.profile_picture as other_profile_picture,
+            m.content as last_message,
+            m.timestamp as last_message_time,
+            COALESCE(uc.unread_count, 0) as unread_count
+        FROM last_messages lm
+        JOIN users u ON u.id = lm.other_user_id
+        JOIN messages m ON (
+            (m.sender_id = %s AND m.receiver_id = u.id) OR 
+            (m.sender_id = u.id AND m.receiver_id = %s)
+        ) AND m.timestamp = lm.max_timestamp
+        LEFT JOIN unread_counts uc ON u.id = uc.sender_id
+        ORDER BY m.timestamp DESC
+    """
+    
+    cursor = get_db_cursor()
+    cursor.execute(query, (user_id, user_id, user_id, user_id, user_id, user_id, user_id))
+    conversations = cursor.fetchall()
+    
+    result = []
+    for conv in conversations:
+        result.append({
+            'other_user_id': conv[0],
+            'other_username': conv[1],
+            'other_profile_picture': conv[2],
+            'last_message': conv[3],
+            'last_message_time': conv[4],
+            'unread_count': conv[5]
+        })
+    
+    return result
 
 
 @app.route('/messages/send', methods=['POST'])
@@ -948,6 +986,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
