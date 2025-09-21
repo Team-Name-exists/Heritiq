@@ -151,37 +151,28 @@ if (sellerLoginForm) {
 
 // Auto-detect user type when email is entered
 document.addEventListener('DOMContentLoaded', function() {
-    const emailInputs = document.querySelectorAll('input[type="email"]');
-    
-    emailInputs.forEach(input => {
+    document.querySelectorAll('input[type="email"]').forEach(input => {
         input.addEventListener('blur', async function() {
             const email = this.value.trim();
-            if (email) {
-                try {
-                    const response = await fetch('/api/check-user-type', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ email: email })
-                    });
-                    
-                    if (response.ok) {
-                        const result = await response.json();
-                        // Check if user_type exists and is not null/undefined
-                        if (result.user_type !== undefined && result.user_type !== null) {
-                            // Suggest the correct form
-                            if (result.user_type === 'seller') {
-                                switchTab('seller');
-                            } else if (result.user_type === 'buyer') {
-                                switchTab('buyer');
-                            }
-                        }
-                        // If user_type is null (user doesn't exist), do nothing
-                    }
-                } catch (err) {
-                    console.error('Error checking user type:', err);
+            if (!email) return;
+            
+            try {
+                const response = await fetch('/api/check-user-type', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email })
+                });
+                
+                if (!response.ok) return;
+                
+                const result = await response.json();
+                if (result.user_type) {
+                    switchTab(result.user_type);
                 }
+            } catch (err) {
+                console.error('Error checking user type:', err);
             }
-        }); // ← Added missing closing parenthesis and bracket
+        });
     });
 });
 
@@ -739,3 +730,4 @@ document.addEventListener('DOMContentLoaded', function() {
     initLazyLoading();
 
 });
+
