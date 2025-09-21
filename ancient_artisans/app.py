@@ -548,6 +548,21 @@ def cart():
     return render_template('cart.html', user_id=session['user_id'])
 
 
+
+@app.route('/api/cart/count')
+def api_cart_count():
+    if 'user_id' not in session or session.get('user_type') != 'buyer':
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+    
+    user_id = session['user_id']
+    try:
+        cart_items = Cart.get_cart_items(user_id)
+        count = sum(item['quantity'] for item in cart_items)
+        return jsonify({'success': True, 'count': count})
+    except Exception as e:
+        print("Error getting cart count:", e)
+        return jsonify({'success': False, 'error': 'Failed to get cart count'}), 500
+
 # ---------------- API: Get Cart ----------------
 @app.route('/api/cart')
 def api_cart():
@@ -1030,6 +1045,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
