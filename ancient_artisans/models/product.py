@@ -133,7 +133,7 @@ class Product:
         finally:
             cursor.close()
     
-   @staticmethod
+    @staticmethod
     def get_related_products(product_id, category, limit=4):
         """Get related products by category"""
         cursor = get_cursor()
@@ -181,4 +181,5 @@ class Product:
         products = cursor.fetchall()
         cursor.close()
         return products
+
 
